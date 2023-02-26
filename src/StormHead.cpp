@@ -195,7 +195,7 @@ void StormHead::Att_shoot1(std::vector<shProjectile>& pvec, SDL_Point chPos) {
         double bullet_speed = 3;
         double angle_gap = 360 / bullet_count;
         double radius = 30;
-        double shotDir = atan2(chPos.x - sx, chPos.y - sy) * 180 / PI;
+        double shotDir = atan2(chPos.x - sx, chPos.y - sy) * 180.0 / PI;
         for (int i = 0; i < bullet_count; i++) {
             double theta = angle_gap * i + shotDir;
             theta = PI * theta / 180;
@@ -211,6 +211,7 @@ void StormHead::Att_shoot1(std::vector<shProjectile>& pvec, SDL_Point chPos) {
 void StormHead::Att_shoot2(std::vector<shProjectile>& pvec, SDL_Point chPos) {
     double sx = hitbox_x + hitbox_w * 0.5;
     double sy = hitbox_y + hitbox_h * 0.5;
+
     clock_t curr_time = clock();
     if (((double)curr_time - (double)shootingClock) / CLOCKS_PER_SEC >= shooting2_interval) {
         shootingClock = clock();
@@ -233,12 +234,13 @@ void StormHead::Att_shoot2(std::vector<shProjectile>& pvec, SDL_Point chPos) {
 
 void StormHead::Att_spawn(std::vector<Golem*>& gols, std::vector<Goblin*>& gobs) {
     if (attack_click != 1 && attack_click != 3) return; 
+    if (gols.size() + gobs.size() > 100) return;
     double sx = hitbox_x + hitbox_w * 0.5;
     double sy = hitbox_y + hitbox_h * 0.5;
-    int mob_num = 2;
+    int mob_num = 2 + rand() % 2;
     int offsetX = 120 * (attack_click == 1 ? 1 : -1) * (sprites[curr_sprite].flip == SDL_FLIP_NONE ? 1 : -1);
     int gol_num = rand() % (mob_num + 1);
-    int radius = 40;
+    int radius = rand() % 20 + 70;
     for (int i = 0; i < gol_num; i++) {
         Golem* g = new Golem();
         g->InitHitbox(sx + offsetX + (rand() % (2 * radius + 1) - radius), 
@@ -313,9 +315,9 @@ void StormHead::Render(SDL_Renderer* renderer, int camX, int camY) {
         render_y = spr_offsetY + hitbox_y;
     this->sprites[curr_sprite].Render(render_x - camX, render_y - camY, renderer);
     
-    SDL_SetRenderDrawColor(renderer, 255, 32, 64, 255);
-    SDL_Rect hitbox = {hitbox_x - camX, hitbox_y - camY, hitbox_w, hitbox_h};
-    SDL_RenderDrawRect(renderer, &hitbox);
+    // SDL_SetRenderDrawColor(renderer, 255, 32, 64, 255);
+    // SDL_Rect hitbox = {hitbox_x - camX, hitbox_y - camY, hitbox_w, hitbox_h};
+    // SDL_RenderDrawRect(renderer, &hitbox);
 
     int spacing = 10;
     int healthbar_height = 4;
@@ -330,6 +332,7 @@ void StormHead::Render(SDL_Renderer* renderer, int camX, int camY) {
 
 StormHead::StormHead() {
     hvel = 0;
+    std::cout << "e1\n";
     vvel = 0;
     hacc = 0;
     vacc = 0;
@@ -341,11 +344,11 @@ StormHead::StormHead() {
     spawning = false;
     got_hit = false;
     health = MAX_HEALTH;
-    chasingSpeed = 0.5;
+    chasingSpeed = 0;
     curr_attack = 0;
     attack_click = 0;
 
-    next_attack_interval = 5;
+    next_attack_interval = 3.25;
     shooting_interval = 0.2;
     shooting2_interval = 0.15;
     
@@ -357,6 +360,7 @@ StormHead::StormHead() {
 
     for (int i = 0; i < SPRITE_COUNT; i++) {
         sprites[i].texture = NULL;
+        sprites[i].SetFrameId(0);
     }
 
     spr_offsetX = 0;

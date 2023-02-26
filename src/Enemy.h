@@ -27,9 +27,10 @@ public:
 protected:
     const double MAX_SPEED = 9.0;
     const double FRICTION = .9;
+    const double dawdleInterval = 1.75;
     double hvel, vvel, hacc, vacc;
     double hitbox_x, hitbox_y, hitbox_w, hitbox_h;
-    double dawdlen = 100, dawdlingInterval = 2, dyingDuration = 4;
+    double dawdlen = 100, dawdlingInterval = 1.5, dyingDuration = 4;
     double dawddir = 0, dawdled = 0;
     clock_t dawdling_clock, got_hit_clock, dying_clock;
 

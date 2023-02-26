@@ -7,18 +7,6 @@ void Floor1::GameInit() {
 	epvec.clear();
 	gols.clear();
 	gobs.clear();
-	
-	camera = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-
-	player = new Character();
-	player->InitHitbox(128, 128, CHARACTER_WIDTH, CHARACTER_HEIGHT);
-	player->InitSprite();
-
-	stormhead = new StormHead();
-	stormhead->InitHitbox(SCREEN_WIDTH / 2 - STORM_WIDTH / 2, SCREEN_HEIGHT / 2 - STORM_HEIGHT / 2,
-							STORM_WIDTH, STORM_HEIGHT);
-	stormhead->InitSprite();
-	stormhead->InitClock();
 
 	
 	tileSet.Init(32, 32);
@@ -28,6 +16,18 @@ void Floor1::GameInit() {
 
 	LEVEL_WIDTH = tileSet.GetLevelWidth();
 	LEVEL_HEIGHT = tileSet.GetLevelHeight();
+	
+	camera = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+
+	player = new Character();
+	player->InitHitbox(128, 128, CHARACTER_WIDTH, CHARACTER_HEIGHT);
+	player->InitSprite();
+
+	stormhead = new StormHead();
+	stormhead->InitHitbox(LEVEL_WIDTH / 2 - STORM_WIDTH / 2, LEVEL_HEIGHT / 2 - STORM_HEIGHT / 2,
+							STORM_WIDTH, STORM_HEIGHT);
+	stormhead->InitSprite();
+	stormhead->InitClock();
 
 
 	auto [px, py, pw, ph] = player->GetHitbox();
@@ -63,7 +63,7 @@ int Floor1::HandleMouseEvents(SDL_Event e){
 
 void Floor1::Update() {
     
-	if (player->health) {
+	if (player->health > 0) {
 		player->ReceiveMouseInput(camera.x, camera.y);
 		const Uint8* state = SDL_GetKeyboardState(NULL);
 		

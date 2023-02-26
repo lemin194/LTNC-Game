@@ -286,6 +286,13 @@ int main( int argc, char* args[] )
 
 		curr_floor->Draw();
 
+		// int mx = SCREEN_WIDTH / 2, my = SCREEN_HEIGHT / 2;
+		// int mouseX, mouseY; SDL_GetMouseState(&mouseX, &mouseY);
+		// SDL_RenderDrawLine(renderer, mx, my, mouseX, mouseY);
+		// double theta = std::atan2(my - mouseY, mouseX - mx);
+		// double sin = std::sin(theta);
+		// double cos = std::cos(theta);
+		// std::cout << theta << " " << sin << " " << cos << "\n";
 		
 		render_txt(txt_healthBar, txt_healthBar_pos.x, txt_healthBar_pos.y);
 		// SDL_Rect r = {txt_healthBar_pos.x, txt_healthBar_pos.y, txt_healthBar->GetWidth(), txt_healthBar->GetHeight()};
@@ -297,7 +304,7 @@ int main( int argc, char* args[] )
 			heart->Render(curr_x, heart_pos.y - heart->GetHeight() / 2, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
 		}
 
-		if (!curr_floor->player->health) {
+		if (curr_floor->player->health <= 0) {
 			SDL_Rect r = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 			SDL_RenderFillRect(renderer, &r);

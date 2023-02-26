@@ -222,8 +222,13 @@ bool Character::CollideProjectile(shProjectile& p) {
 }
 
 bool Character::TakeDamage(SDL_Point ePos, int damage) {
-    if (got_hit) return 0;
-    
+    if (got_hit) {
+        clock_t curr_time = clock();
+        if (((double) curr_time - (double)gothit_clock) / CLOCKS_PER_SEC >= gothit_duration) {
+            got_hit = false;
+        }
+        else return 0;
+    }
 
     double px = ePos.x, py = ePos.y;
     double mx = hitbox_x + hitbox_w * 0.5, my = hitbox_y + hitbox_h * 0.5;

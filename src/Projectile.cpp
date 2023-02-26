@@ -44,9 +44,9 @@ SDL_Rect Projectile::GetHitbox() {
 
 void Projectile::Render(SDL_Renderer* gRenderer, int camX, int camY) {
 
-    SDL_SetRenderDrawColor(gRenderer, 255, 32, 64, 255);
-    SDL_Rect hitbox = {hitbox_x - camX, hitbox_y - camY, hitbox_w, hitbox_h};
-    SDL_RenderDrawRect(gRenderer, &hitbox);
+    // SDL_SetRenderDrawColor(gRenderer, 255, 32, 64, 255);
+    // SDL_Rect hitbox = {hitbox_x - camX, hitbox_y - camY, hitbox_w, hitbox_h};
+    // SDL_RenderDrawRect(gRenderer, &hitbox);
     
     double render_x = spr_offsetX + hitbox_x,
         render_y = spr_offsetY + hitbox_y;

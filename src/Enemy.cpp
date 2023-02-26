@@ -11,6 +11,7 @@ void Enemy::InitHitbox(int x, int y, int w, int h) {
 
 void Enemy::InitClock() {
     dawdling_clock = clock();
+    dawdlingInterval = dawdleInterval + (rand() % 100) * 0.005;
 }
 
 SDL_Rect Enemy::GetHitbox() {
@@ -79,6 +80,8 @@ void Enemy::ChaseCharacter(Character& c) {
             clock_t curr_time = clock();
             if (((double)curr_time - (double)dawdling_clock) / CLOCKS_PER_SEC >= dawdlingInterval) {
                 dawdling_clock = clock();
+                
+                dawdlingInterval = dawdleInterval + (rand() % 100) * 0.005;
                 dawdling = true;
                 
                 dawddir = (rand() % 360) * 2 * PI / 360;
@@ -179,7 +182,7 @@ Enemy::Enemy() {
     hitbox_w = 0;
     hitbox_h = 0;
     dawdlen = 100;
-    dawdlingInterval = 2;
+    dawdlingInterval = dawdleInterval + (rand() % 100) * 0.005;
     dyingDuration = 4;
     dawddir = 0;
     dawdled = 0;
