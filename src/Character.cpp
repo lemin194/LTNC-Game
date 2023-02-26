@@ -207,13 +207,13 @@ bool Character::CollideProjectile(shProjectile& p) {
 
     double deltax = mx - px, deltay = my - py;
     auto [pspeed, pdir] = p.GetSpeed();
-    double pvelx = sin(pdir) * pspeed * 0.5;
-    double pvely = cos(pdir) * pspeed * 0.5;
+    double pvelx = sin(pdir);
+    double pvely = cos(pdir);
 
     // std::cout << deltax * 0.5 << "-" << pvelx << "\n";
     double theta = std::atan2(-deltay, deltax);
     double mult = 9;
-    AddForce(kb_coefficient * std::cos(theta) * mult , - kb_coefficient * std::sin(theta) * mult);
+    AddForce(kb_coefficient * pvelx * mult, kb_coefficient * pvely * mult);
     
     health --;
     got_hit = true;
@@ -316,7 +316,7 @@ Character::Character() {
     got_hit = 1;
     gothit_clock = clock();
 
-    kb_coefficient = 0.5;
+    kb_coefficient = 0.7;
     gothit_duration = 0.4;
 }
 
