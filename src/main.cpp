@@ -11,7 +11,7 @@
 #include "StormHead.h"
 #include "Floor1.h"
 #include "shProjectile.h"
-
+#include "LTimer.h"
 
 
 
@@ -217,6 +217,7 @@ int mySdlInit() {
 }
 
 SDL_Renderer* GameFloor::renderer;
+LTimer capTimer;
 int main( int argc, char* args[] )
 {
 	srand(time(NULL));
@@ -315,6 +316,14 @@ int main( int argc, char* args[] )
 		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
 
 		SDL_RenderPresent(renderer);
+
+		
+		int frameTicks = capTimer.getTicks();
+		if( frameTicks < SCREEN_TICKS_PER_FRAME )
+		{
+			//Wait remaining time
+			SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
+		}
 
 	}
 

@@ -86,6 +86,8 @@ void Floor1::Update() {
 		auto it = gols.begin();
 		while (it != gols.end()) {
 			if ((*it)->completelyDied) {
+				(*it)->~Golem();
+				
 				it = gols.erase(it);
 			}
 			else {
@@ -98,6 +100,7 @@ void Floor1::Update() {
 		auto it = gobs.begin();
 		while (it != gobs.end()) {
 			if ((*it)->completelyDied) {
+				(*it)->~Goblin();
 				it = gobs.erase(it);
 			}
 			else {

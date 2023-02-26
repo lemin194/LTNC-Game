@@ -23,6 +23,10 @@ static int LEVEL_HEIGHT = 640;
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
+const int SCREEN_FPS = 60;
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+
+
 const double PI = 3.1415926535897932;
 
 const int CHARACTER_WIDTH = 20;
