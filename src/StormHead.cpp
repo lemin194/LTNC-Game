@@ -240,7 +240,7 @@ void StormHead::Att_spawn(std::vector<Golem*>& gols, std::vector<Goblin*>& gobs)
     int mob_num = 2 + rand() % 2;
     int offsetX = 120 * (attack_click == 1 ? 1 : -1) * (sprites[curr_sprite].flip == SDL_FLIP_NONE ? 1 : -1);
     int gol_num = rand() % (mob_num + 1);
-    int radius = rand() % 20 + 70;
+    int radius = 70 + rand() % 10;
     for (int i = 0; i < gol_num; i++) {
         Golem* g = new Golem();
         g->InitHitbox(sx + offsetX + (rand() % (2 * radius + 1) - radius), 
@@ -332,7 +332,6 @@ void StormHead::Render(SDL_Renderer* renderer, int camX, int camY) {
 
 StormHead::StormHead() {
     hvel = 0;
-    std::cout << "e1\n";
     vvel = 0;
     hacc = 0;
     vacc = 0;

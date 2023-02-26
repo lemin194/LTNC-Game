@@ -59,7 +59,7 @@ Sprite spr;
 
 
 int loadMedia() {
-	std:: cout << ((bgImage = myLoadTexture("..\\assets\\img.png", renderer)) != NULL) << " loaded bg\n";
+	bgImage = myLoadTexture("..\\assets\\img.png", renderer);
 
 	if (bgImage == NULL) {
 		std::cout << "cant load bg.\n";
@@ -238,13 +238,12 @@ int main( int argc, char* args[] )
 	LTexture* txt_healthBar = new LTexture();
 	LTexture* txt_dies = new LTexture();
 	txt_healthBar->loadFromRenderedText("Health:", {255, 255, 255, 255}, font_ui, renderer);
-	txt_dies->loadFromRenderedText("You Died\nPress R to restart.", {255, 255, 255, 255}, font_ui, renderer);
+	txt_dies->loadFromRenderedText("You Died. Press R to restart.", {255, 255, 255, 255}, font_ui, renderer);
 	auto restart = [&] () {
 		curr_floor = new Floor1();
 		curr_floor->GameInit();
 		curr_floor->player->health = 5;
 
-		std::cout << LEVEL_WIDTH << "x" << LEVEL_HEIGHT << "\n";
 	};
 	restart();
 
