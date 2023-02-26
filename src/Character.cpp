@@ -211,9 +211,10 @@ bool Character::CollideProjectile(shProjectile& p) {
     double pvely = cos(pdir) * pspeed * 0.5;
 
     // std::cout << deltax * 0.5 << "-" << pvelx << "\n";
-    double mult = 0.5;
-    AddForce(kb_coefficient * (deltax * mult + pvelx), kb_coefficient * (deltay * mult + pvely));
-
+    double theta = std::atan2(-deltay, deltax);
+    double mult = 9;
+    AddForce(kb_coefficient * std::cos(theta) * mult , - kb_coefficient * std::sin(theta) * mult);
+    
     health --;
     got_hit = true;
     gothit_clock = clock();
@@ -234,8 +235,10 @@ bool Character::TakeDamage(SDL_Point ePos, int damage) {
     double mx = hitbox_x + hitbox_w * 0.5, my = hitbox_y + hitbox_h * 0.5;
 
     double deltax = mx - px, deltay = my - py;
-    double mult = 0.3;
-    AddForce(kb_coefficient * (deltax * mult), kb_coefficient * (deltay * mult));
+    double mult = 9;
+    double theta = std::atan2(-deltay, deltax);
+    AddForce(kb_coefficient * std::cos(theta) * mult, - kb_coefficient * std::sin(theta) * mult);
+    
 
     health --;
     got_hit = true;

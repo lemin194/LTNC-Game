@@ -102,7 +102,7 @@ Golem::Golem() {
         sprites[i].texture = NULL;
     }
     kb_coeficient = 0.5;
-    chasingSpeed = 1.5;
+    chasingSpeed = 2.5;
     health = MAX_HEALTH;;
 }
 Golem::~Golem(){

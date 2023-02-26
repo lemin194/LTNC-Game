@@ -103,8 +103,8 @@ Goblin::Goblin() {
     for (int i = 0; i < 5; i++) {
         sprites[i].texture = NULL;
     }
-    kb_coeficient = .8;
-    chasingSpeed = 3;
+    kb_coeficient = .7;
+    chasingSpeed = 4;
     health = MAX_HEALTH;
 }
 Goblin::~Goblin(){

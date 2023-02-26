@@ -120,38 +120,40 @@ void Floor1::Update() {
 	stormhead->Update(epvec, gols, gobs, chPos);
 
 
-	std::vector<Projectile> new_vec;
-	for (int i = 0; i < projectile_vec.size(); i++) {
-		projectile_vec[i].Update();
-		
-		
+	for (int t = 0; t < 2; t++) {
+		std::vector<Projectile> new_vec;
+		for (int i = 0; i < projectile_vec.size(); i++) {
+			projectile_vec[i].Update();
+			
+			
 
-		int ok = 1;
-		for (auto g : gols) if (g->GetHealth() > 0 && g->CollideProjectile(projectile_vec[i]))
-		{ ok = 0; break; }
-		for (auto g : gobs) if (g->GetHealth() > 0 && g->CollideProjectile(projectile_vec[i]))
-		{ ok = 0; break; }
-		if (stormhead->GetHealth() > 0 && stormhead->CollideProjectile(projectile_vec[i])) { ok = 0; }
+			int ok = 1;
+			for (auto g : gols) if (g->GetHealth() > 0 && g->CollideProjectile(projectile_vec[i]))
+			{ ok = 0; break; }
+			for (auto g : gobs) if (g->GetHealth() > 0 && g->CollideProjectile(projectile_vec[i]))
+			{ ok = 0; break; }
+			if (stormhead->GetHealth() > 0 && stormhead->CollideProjectile(projectile_vec[i])) { ok = 0; }
 
-		if (!ok) continue;
+			if (!ok) continue;
 
-		if (!tileSet.CollideProjectile(projectile_vec[i])) {
-			new_vec.push_back(projectile_vec[i]);
+			if (!tileSet.CollideProjectile(projectile_vec[i])) {
+				new_vec.push_back(projectile_vec[i]);
+			}
 		}
-	}
-	projectile_vec.clear();
-	for (auto p : new_vec) projectile_vec.push_back(p);
+		projectile_vec.clear();
+		for (auto p : new_vec) projectile_vec.push_back(p);
 
-	std::vector<shProjectile> new_epvec;
-	for (int i = 0; i < epvec.size(); i++) {
-		epvec[i].Update();
-		if (tileSet.CollideProjectile(epvec[i])) continue;
-		if (player->CollideProjectile(epvec[i])) continue;
-	
-		new_epvec.push_back(epvec[i]);
+		std::vector<shProjectile> new_epvec;
+		for (int i = 0; i < epvec.size(); i++) {
+			epvec[i].Update();
+			if (tileSet.CollideProjectile(epvec[i])) continue;
+			if (player->CollideProjectile(epvec[i])) continue;
 		
+			new_epvec.push_back(epvec[i]);
+			
+		}
+		epvec = new_epvec;
 	}
-	epvec = new_epvec;
 
 
 

@@ -33,7 +33,7 @@ public:
     
 private:
     const double MAX_SPEED = 9.0;
-    const double FRICTION = .6;
+    const double FRICTION = .71;
     double hvel, vvel, hacc, vacc;
     double hitbox_x, hitbox_y, hitbox_w, hitbox_h;
 
