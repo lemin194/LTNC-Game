@@ -11,6 +11,7 @@ void Golem::InitSprite() {
         sprites[i].SetClipTime(0.08);
         sprites[i].center = {(int)(32 - hitbox_w / 2), (int)(44 - hitbox_h / 2)};
         sprites[i].flip = SDL_FLIP_NONE;
+        sprites[i].InitClock();
     }
 
     
@@ -100,10 +101,12 @@ Golem::Golem() {
     curr_sprite = 0;
     for (int i = 0; i < 5; i++) {
         sprites[i].texture = NULL;
+        sprites[i].InitClock();
     }
     kb_coeficient = 0.5;
     chasingSpeed = 2.5;
     health = MAX_HEALTH;;
+
 }
 Golem::~Golem(){
     spr_offsetX = 0;

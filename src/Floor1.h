@@ -20,7 +20,7 @@ private :
     std::vector<Golem*> gols;
     std::vector<Goblin*> gobs;
     LTexture gTextTexture1;
-    
+
 
 };
 

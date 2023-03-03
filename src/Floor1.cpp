@@ -117,6 +117,7 @@ void Floor1::Update() {
 		g->ChaseCharacter(*player);
 
 	SDL_Point chPos = {px + pw / 2, py + ph / 2};
+	if (stormhead->GetHealth() > 0)
 	stormhead->Update(epvec, gols, gobs, chPos);
 
 
@@ -203,7 +204,7 @@ void Floor1::Draw() {
 		p.Render(renderer, camera.x, camera.y);
 	}
 
-	stormhead->Render(renderer, camera.x, camera.y);
+	if (!stormhead->completelyDied) stormhead->Render(renderer, camera.x, camera.y);
 	
 	
 	player->Render(renderer, camera.x, camera.y);

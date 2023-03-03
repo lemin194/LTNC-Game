@@ -10,6 +10,7 @@
 #include "Goblin.h"
 #include "StormHead.h"
 #include "Floor1.h"
+#include "MainMenu.h"
 #include "shProjectile.h"
 #include "LTimer.h"
 
@@ -68,7 +69,7 @@ int loadMedia() {
 
 	TileSet::texture = new LTexture();
 	TileSet::texture->LoadFromFile("..\\assets\\sprites\\tileSet_x2.png", renderer);
-	
+
 
 	std::string *paths = new std::string[2] {
 						"..\\assets\\sprites\\char\\char.png",
@@ -130,7 +131,7 @@ int loadMedia() {
 	{
 		printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
 	}
-	
+
 	GameFloor::gFont = TTF_OpenFont( "..\\assets\\font\\ARCADECLASSIC.TTF", 64 );
     if( GameFloor::gFont == NULL )
     {
@@ -153,32 +154,6 @@ int loadMedia() {
 	return 1;
 }
 
-void close() {
-	TileSet::texture->Free();
-	Character::textures[0]->Free();
-	Character::textures[1]->Free();
-	Weapon::texture->Free();
-	Projectile::texture->Free();
-	Golem::texture->Free();
-
-	spr.texture->Free();
-
-
-	gTextTexture1.Free();
-    TTF_CloseFont( GameFloor::gFont );
-
-
-	SDL_DestroyTexture(texture);
-	SDL_DestroyTexture(bgImage);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-
-    TTF_Quit();
-    IMG_Quit();
-	SDL_Quit();
-
-	std::cout << "closed.";
-}
 
 
 
@@ -203,7 +178,7 @@ int mySdlInit() {
 	}
 
 	SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
-	
+
 	int imgFlags = IMG_INIT_PNG;
 	if( !( IMG_Init( imgFlags ) & imgFlags ) )
 	{
@@ -218,25 +193,86 @@ int mySdlInit() {
 
 SDL_Renderer* GameFloor::renderer;
 LTimer capTimer;
+
+GameFloor* curr_floor;
+
+LTexture* txt_healthBar;
+LTexture* txt_dies     ;
+Button* b_play   ;
+Button* b_exit   ;
+
+
+
+void close() {
+	TileSet::texture->Free();
+	Character::textures[0]->Free();
+	Character::textures[1]->Free();
+	Weapon::texture->Free();
+	Projectile::texture->Free();
+	Golem::texture->Free();
+
+	delete b_exit;
+	delete b_play;
+	delete curr_floor;
+	txt_dies     ->Free();
+	txt_healthBar->Free();
+
+	spr.texture->Free();
+
+
+	gTextTexture1.Free();
+    TTF_CloseFont( GameFloor::gFont );
+
+
+	SDL_DestroyTexture(texture);
+	SDL_DestroyTexture(bgImage);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+
+    TTF_Quit();
+    IMG_Quit();
+	SDL_Quit();
+
+	std::cout << "closed.";
+}
+
+
 int main( int argc, char* args[] )
 {
 	srand(time(NULL));
-	
+
 
 	int ok = mySdlInit();
 
 	SDL_Surface* icon = myLoadSurface("..\\assets\\icon.png", screenSurface->format, renderer);
 	SDL_SetWindowIcon(window, icon);
-	
+
 
 	loadMedia();
 
 	GameFloor::renderer = renderer;
 
-	GameFloor* curr_floor;
-	
-	LTexture* txt_healthBar = new LTexture();
-	LTexture* txt_dies = new LTexture();
+	// MainMenu* main_menu = new MainMenu();
+
+
+
+	b_play    = new Button();
+	b_exit    = new Button();
+    int w = 144;
+    int h = 32;
+    int yOffset = 32;
+    b_play   ->Init(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - yOffset, w, h);
+    b_exit   ->Init(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - yOffset + 2 * h, w, h);
+
+
+    b_play   ->InitText("Play",    font_ui, renderer);
+    b_exit   ->InitText("Exit",    font_ui, renderer);
+
+	txt_healthBar = new LTexture();
+	txt_dies      = new LTexture();
+
+	// main_menu->Init();
+	// main_menu->InitText(font_ui, renderer);
 	txt_healthBar->loadFromRenderedText("Health:", {255, 255, 255, 255}, font_ui, renderer);
 	txt_dies->loadFromRenderedText("You Died. Press R to restart.", {255, 255, 255, 255}, font_ui, renderer);
 	auto restart = [&] () {
@@ -254,7 +290,7 @@ int main( int argc, char* args[] )
 	SDL_Point txt_healthBar_pos = {8, 8};
 	int pause = 0;
 	int quit = 0;
-	
+	bool Playing = false;
 	while( true )
 	{
 		SDL_Event e;
@@ -263,70 +299,99 @@ int main( int argc, char* args[] )
 				quit = true;
 				break;
 			}
-			if (e.type == SDL_KEYDOWN) {
-				if (e.key.keysym.sym == SDLK_r) {
+			if (!Playing) {
+				int btn_click;
+
+				if (b_play   ->HandleMouseEvent(e)) btn_click = 1;
+				if (b_exit   ->HandleMouseEvent(e)) btn_click = 3;
+				if (btn_click == 3) {
+					quit = true;
+					break;
+				}
+				if (btn_click == 1) {
+					Playing = true;
 					restart();
 				}
 			}
+			else {
+				if (e.type == SDL_KEYDOWN) {
+					if (e.key.keysym.sym == SDLK_r) {
+						restart();
+					}
+				}
 
-			curr_floor->HandleMouseEvents(e);
+				curr_floor->HandleMouseEvents(e);
+			}
 		}
 		if (quit) break;
-		curr_floor->Update();
-		
-		int &health = curr_floor->player->health;
 
-		const Uint8* key_state = SDL_GetKeyboardState(NULL);
+		if (!Playing) {
 
-		if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
+			/// Draw
+			SDL_SetRenderDrawColor(renderer, 0x1A, 0x1A, 0x1A, 0xFF);
+			SDL_RenderClear(renderer);
 
-		/// Draw
-		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
-		SDL_RenderClear(renderer);
+			b_play   ->Render(renderer);
+			b_exit   ->Render(renderer);
 
-		curr_floor->Draw();
+			SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
 
-		// int mx = SCREEN_WIDTH / 2, my = SCREEN_HEIGHT / 2;
-		// int mouseX, mouseY; SDL_GetMouseState(&mouseX, &mouseY);
-		// SDL_RenderDrawLine(renderer, mx, my, mouseX, mouseY);
-		// double theta = std::atan2(my - mouseY, mouseX - mx);
-		// double sin = std::sin(theta);
-		// double cos = std::cos(theta);
-		// std::cout << theta << " " << sin << " " << cos << "\n";
-		
-		render_txt(txt_healthBar, txt_healthBar_pos.x, txt_healthBar_pos.y);
-		// SDL_Rect r = {txt_healthBar_pos.x, txt_healthBar_pos.y, txt_healthBar->GetWidth(), txt_healthBar->GetHeight()};
-		// SDL_RenderDrawRect(renderer, &r);
-		SDL_Point heart_pos = {txt_healthBar_pos.x + txt_healthBar->GetWidth(), txt_healthBar_pos.y + txt_healthBar->GetHeight() / 2};
-		int spacing = 0;
-		for (int i = 1; i <= health; i++) {
-			int curr_x = heart_pos.x + (i - 1) * (spacing + heart->GetWidth());
-			heart->Render(curr_x, heart_pos.y - heart->GetHeight() / 2, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
+			SDL_RenderPresent(renderer);
 		}
 
-		if (curr_floor->player->health <= 0) {
-			SDL_Rect r = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-			SDL_RenderFillRect(renderer, &r);
+		else  {
+			curr_floor->Update();
 
-			render_txt(txt_dies, SCREEN_WIDTH / 2 - txt_dies->GetWidth() / 2, SCREEN_HEIGHT / 2 - txt_dies->GetHeight() / 2);
+			int &health = curr_floor->player->health;
+
+			const Uint8* key_state = SDL_GetKeyboardState(NULL);
+
+			if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
+
+			/// Draw
+			SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
+			SDL_RenderClear(renderer);
+
+			curr_floor->Draw();
+
+
+			render_txt(txt_healthBar, txt_healthBar_pos.x, txt_healthBar_pos.y);
+			// SDL_Rect r = {txt_healthBar_pos.x, txt_healthBar_pos.y, txt_healthBar->GetWidth(), txt_healthBar->GetHeight()};
+			// SDL_RenderDrawRect(renderer, &r);
+			SDL_Point heart_pos = {txt_healthBar_pos.x + txt_healthBar->GetWidth(), txt_healthBar_pos.y + txt_healthBar->GetHeight() / 2};
+			int spacing = 0;
+			for (int i = 1; i <= health; i++) {
+				int curr_x = heart_pos.x + (i - 1) * (spacing + heart->GetWidth());
+				heart->Render(curr_x, heart_pos.y - heart->GetHeight() / 2, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
+			}
+
+			if (curr_floor->player->health <= 0) {
+				SDL_Rect r = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+				SDL_RenderFillRect(renderer, &r);
+
+				render_txt(txt_dies, SCREEN_WIDTH / 2 - txt_dies->GetWidth() / 2, SCREEN_HEIGHT / 2 - txt_dies->GetHeight() / 2);
+			}
+			SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
+
+
+			SDL_RenderPresent(renderer);
+
+
+			int frameTicks = capTimer.getTicks();
+			if( frameTicks < SCREEN_TICKS_PER_FRAME )
+			{
+				//Wait remaining time
+				SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
+			}
 		}
 
-		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
 
-		SDL_RenderPresent(renderer);
-
-		
-		int frameTicks = capTimer.getTicks();
-		if( frameTicks < SCREEN_TICKS_PER_FRAME )
-		{
-			//Wait remaining time
-			SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
-		}
 
 	}
 
 	close();
+
 
 	SDL_FreeSurface(icon);
 

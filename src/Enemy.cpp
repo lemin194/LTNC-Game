@@ -173,6 +173,7 @@ Enemy::Enemy() {
     dawdling_clock = clock();
     got_hit_clock = clock();
     dying_clock = clock();
+    attack_clock = clock();
     hvel = 0;
     vvel = 0;
     hacc = 0;

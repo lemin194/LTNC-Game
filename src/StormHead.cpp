@@ -20,6 +20,7 @@ void StormHead::InitSprite() {
     for (int i = 0; i < SPRITE_COUNT; i++) {
         sprites[i].SetClipTime(0.1);
         sprites[i].resize = 3;
+        sprites[i].InitClock();
     }
 
     curr_sprite = SPR_IDLE;
@@ -68,8 +69,6 @@ void StormHead::InitSprite() {
 
 
 void StormHead::Animate() {
-    // if (curr_sprite != 0)
-    // std::cout << curr_sprite << "\n";
     if (health > 0) {
         if (attack_done) {
             if (got_hit) {
@@ -237,7 +236,7 @@ void StormHead::Att_spawn(std::vector<Golem*>& gols, std::vector<Goblin*>& gobs)
     if (gols.size() + gobs.size() > 100) return;
     double sx = hitbox_x + hitbox_w * 0.5;
     double sy = hitbox_y + hitbox_h * 0.5;
-    int mob_num = 2 + rand() % 2;
+    int mob_num = 2;
     int offsetX = 120 * (attack_click == 1 ? 1 : -1) * (sprites[curr_sprite].flip == SDL_FLIP_NONE ? 1 : -1);
     int gol_num = rand() % (mob_num + 1);
     int radius = 70 + rand() % 10;
@@ -311,6 +310,7 @@ bool StormHead::CollideProjectile(Projectile& p) {
 
 
 void StormHead::Render(SDL_Renderer* renderer, int camX, int camY) {
+    if (completelyDied) return;
     double render_x = spr_offsetX + hitbox_x,
         render_y = spr_offsetY + hitbox_y;
     this->sprites[curr_sprite].Render(render_x - camX, render_y - camY, renderer);

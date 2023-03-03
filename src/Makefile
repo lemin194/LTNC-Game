@@ -4,6 +4,7 @@ OBJS = main.cpp GameBase.cpp Sprite.cpp LTexture.cpp TileSet.cpp \
 		Golem.cpp Goblin.cpp Enemy.cpp StormHead.cpp\
 		GameFloor.cpp Floor1.cpp\
 		LTimer.cpp\
+		MainMenu.cpp Button.cpp \
 
 #CC specifies which compiler we're using
 CC = g++

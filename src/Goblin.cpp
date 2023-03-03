@@ -102,6 +102,7 @@ Goblin::Goblin() {
     curr_sprite = 0;
     for (int i = 0; i < 5; i++) {
         sprites[i].texture = NULL;
+        sprites[i].InitClock();
     }
     kb_coeficient = .7;
     chasingSpeed = 4;
