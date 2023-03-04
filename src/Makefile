@@ -1,10 +1,21 @@
-OBJS = main.cpp GameBase.cpp Sprite.cpp LTexture.cpp TileSet.cpp \
-		Character.cpp Weapon.cpp \
-		Projectile.cpp shProjectile.cpp\
-		Golem.cpp Goblin.cpp Enemy.cpp StormHead.cpp\
-		GameFloor.cpp Floor1.cpp\
-		LTimer.cpp\
-		MainMenu.cpp Button.cpp \
+OBJS = main.cpp \
+		header/GameBase.cpp\
+		header/Sprite.cpp\
+		header/LTexture.cpp\
+		header/TileSet.cpp \
+		header/Character.cpp\
+		header/Weapon.cpp \
+		header/Projectile.cpp\
+		header/shProjectile.cpp\
+		header/Golem.cpp\
+		header/Goblin.cpp\
+		header/Enemy.cpp\
+		header/StormHead.cpp\
+		header/GameFloor.cpp\
+		header/Floor1.cpp\
+		header/LTimer.cpp\
+		header/Button.cpp \
+		header/GameGUI.cpp \
 
 #CC specifies which compiler we're using
 CC = g++
@@ -24,7 +35,7 @@ COMPILER_FLAGS = -w
 LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -static-libstdc++
 
 #OBJ_NAME specifies the name of our exectuable
-OBJ_NAME = ..\\bin\\main
+OBJ_NAME = ../bin/Debug/main
 
 #This is the target that compiles our executable
 all : $(OBJS)

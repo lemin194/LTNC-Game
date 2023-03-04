@@ -1,18 +1,19 @@
 
-#include "GameBase.h"
-#include "LTexture.h"
-#include "Character.h"
-#include "Sprite.h"
-#include "TileSet.h"
-#include "Projectile.h"
-#include "Enemy.h"
-#include "Golem.h"
-#include "Goblin.h"
-#include "StormHead.h"
-#include "Floor1.h"
-#include "MainMenu.h"
-#include "shProjectile.h"
-#include "LTimer.h"
+#include "header/GameBase.h"
+#include "header/LTexture.h"
+#include "header/Character.h"
+#include "header/Sprite.h"
+#include "header/TileSet.h"
+#include "header/Projectile.h"
+#include "header/Enemy.h"
+#include "header/Golem.h"
+#include "header/Goblin.h"
+#include "header/StormHead.h"
+#include "header/Floor1.h"
+#include "header/Button.h"
+#include "header/shProjectile.h"
+#include "header/LTimer.h"
+#include "header/GameGUI.h"
 
 
 
@@ -52,6 +53,7 @@ LTexture* shProjectile::texture;
 LTexture* heart;
 
 TTF_Font* GameFloor::gFont;
+TTF_Font* GameFloor::font_ui;
 TTF_Font* font_ui;
 
 
@@ -138,10 +140,11 @@ int loadMedia() {
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
     }
 	font_ui = TTF_OpenFont( "..\\assets\\font\\font_ui.TTF", 48 );
-    if( GameFloor::gFont == NULL )
+    if( font_ui == NULL )
     {
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
     }
+	GameFloor::font_ui = font_ui;
 
 	// spr.texture = Character::textures[0];
 	spr.texture = new LTexture();
@@ -198,8 +201,9 @@ GameFloor* curr_floor;
 
 LTexture* txt_healthBar;
 LTexture* txt_dies     ;
-Button* b_play   ;
-Button* b_exit   ;
+GameGUI* menu;
+GameGUI* winning;
+GameGUI* losing;
 
 
 
@@ -211,8 +215,9 @@ void close() {
 	Projectile::texture->Free();
 	Golem::texture->Free();
 
-	delete b_exit;
-	delete b_play;
+	delete menu;
+	delete winning;
+	delete losing;
 	delete curr_floor;
 	txt_dies     ->Free();
 	txt_healthBar->Free();
@@ -252,34 +257,37 @@ int main( int argc, char* args[] )
 
 	GameFloor::renderer = renderer;
 
-	// MainMenu* main_menu = new MainMenu();
 
-
-
-	b_play    = new Button();
-	b_exit    = new Button();
-    int w = 144;
-    int h = 32;
-    int yOffset = 32;
-    b_play   ->Init(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - yOffset, w, h);
-    b_exit   ->Init(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - yOffset + 2 * h, w, h);
-
-
-    b_play   ->InitText("Play",    font_ui, renderer);
-    b_exit   ->InitText("Exit",    font_ui, renderer);
 
 	txt_healthBar = new LTexture();
 	txt_dies      = new LTexture();
 
-	// main_menu->Init();
-	// main_menu->InitText(font_ui, renderer);
+	vector<string> menu_options;
+	menu_options.push_back("Play");
+	menu_options.push_back("Exit");
+	menu = new GameGUI(font_ui, menu_options);
+
+	vector<string> winning_options;
+	winning_options.push_back("You Win!");
+	winning_options.push_back("Restart");
+	winning_options.push_back("Main Menu");
+	winning = new GameGUI(font_ui, winning_options);
+
+	vector<string> losing_options;
+	losing_options.push_back("You Lose!");
+	losing_options.push_back("Restart");
+	losing_options.push_back("Main Menu");
+	losing = new GameGUI(font_ui, losing_options);
+	
+
+
 	txt_healthBar->loadFromRenderedText("Health:", {255, 255, 255, 255}, font_ui, renderer);
 	txt_dies->loadFromRenderedText("You Died. Press R to restart.", {255, 255, 255, 255}, font_ui, renderer);
 	auto restart = [&] () {
 		curr_floor = new Floor1();
 		curr_floor->GameInit();
 		curr_floor->player->health = 5;
-
+		
 	};
 	restart();
 
@@ -287,10 +295,10 @@ int main( int argc, char* args[] )
 		txt_texture->Render(x, y, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
 	};
 
-	SDL_Point txt_healthBar_pos = {8, 8};
 	int pause = 0;
 	int quit = 0;
 	bool Playing = false;
+	bool IsWin = false, IsLose = false;
 	while( true )
 	{
 		SDL_Event e;
@@ -300,11 +308,8 @@ int main( int argc, char* args[] )
 				break;
 			}
 			if (!Playing) {
-				int btn_click;
-
-				if (b_play   ->HandleMouseEvent(e)) btn_click = 1;
-				if (b_exit   ->HandleMouseEvent(e)) btn_click = 3;
-				if (btn_click == 3) {
+				int btn_click = menu->HandleMouseEvent(e);
+				if (btn_click == 2) {
 					quit = true;
 					break;
 				}
@@ -320,73 +325,96 @@ int main( int argc, char* args[] )
 					}
 				}
 
-				curr_floor->HandleMouseEvents(e);
+				if (!IsWin && !IsLose) {
+					curr_floor->HandleMouseEvents(e);
+				}
+				else if (IsWin) {
+					int btn_click = winning->HandleMouseEvent(e);
+					if (btn_click == 2) {
+						Playing = true;
+						IsWin = false;
+						IsLose = false;
+						restart();
+					}
+					if (btn_click == 3) {
+						Playing = false;
+						IsWin = false;
+						IsLose = false;
+					}
+				}
+				else if (IsLose) {
+					int btn_click = losing->HandleMouseEvent(e);
+					if (btn_click == 2) {
+						Playing = true;
+						IsWin = false;
+						IsLose = false;
+						restart();
+					}
+					if (btn_click == 3) {
+						Playing = false;
+						IsWin = false;
+						IsLose = false;
+					}
+				}
 			}
 		}
 		if (quit) break;
 
+
+
+		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
+		SDL_RenderClear(renderer);
 		if (!Playing) {
 
 			/// Draw
-			SDL_SetRenderDrawColor(renderer, 0x1A, 0x1A, 0x1A, 0xFF);
-			SDL_RenderClear(renderer);
 
-			b_play   ->Render(renderer);
-			b_exit   ->Render(renderer);
+			menu->Render(renderer);
 
-			SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
-
-			SDL_RenderPresent(renderer);
 		}
 
 		else  {
-			curr_floor->Update();
+			if (!IsLose && !IsWin) {
+				
+				curr_floor->Update();
 
-			int &health = curr_floor->player->health;
+				int &health = curr_floor->player->health;
 
-			const Uint8* key_state = SDL_GetKeyboardState(NULL);
+				const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-			if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
+				if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
 
-			/// Draw
-			SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
-			SDL_RenderClear(renderer);
-
-			curr_floor->Draw();
+				/// Draw
+				
+				curr_floor->Draw();
 
 
-			render_txt(txt_healthBar, txt_healthBar_pos.x, txt_healthBar_pos.y);
-			// SDL_Rect r = {txt_healthBar_pos.x, txt_healthBar_pos.y, txt_healthBar->GetWidth(), txt_healthBar->GetHeight()};
-			// SDL_RenderDrawRect(renderer, &r);
-			SDL_Point heart_pos = {txt_healthBar_pos.x + txt_healthBar->GetWidth(), txt_healthBar_pos.y + txt_healthBar->GetHeight() / 2};
-			int spacing = 0;
-			for (int i = 1; i <= health; i++) {
-				int curr_x = heart_pos.x + (i - 1) * (spacing + heart->GetWidth());
-				heart->Render(curr_x, heart_pos.y - heart->GetHeight() / 2, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
+				if (curr_floor->IsLose()) {
+					IsLose = true;
+				}
+				if (curr_floor->IsWin()) {
+					IsWin = true;
+				}
 			}
-
-			if (curr_floor->player->health <= 0) {
-				SDL_Rect r = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-				SDL_RenderFillRect(renderer, &r);
-
-				render_txt(txt_dies, SCREEN_WIDTH / 2 - txt_dies->GetWidth() / 2, SCREEN_HEIGHT / 2 - txt_dies->GetHeight() / 2);
+			else if (IsLose) {
+				losing->Render(renderer);
 			}
-			SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
-
-
-			SDL_RenderPresent(renderer);
-
-
-			int frameTicks = capTimer.getTicks();
-			if( frameTicks < SCREEN_TICKS_PER_FRAME )
-			{
-				//Wait remaining time
-				SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
+			else if (IsWin) {
+				winning->Render(renderer);
 			}
 		}
+		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
 
 
+		SDL_RenderPresent(renderer);
+
+
+
+		int frameTicks = capTimer.getTicks();
+		if( frameTicks < SCREEN_TICKS_PER_FRAME )
+		{
+			//Wait remaining time
+			SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
+		}
 
 	}
 
