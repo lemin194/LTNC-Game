@@ -11,7 +11,7 @@ public:
     void UpdateAngle(double angle);
     void Render(SDL_Renderer* renderer, int camX, int camY);
     void Flip(SDL_RendererFlip flip);
-    int weilding = 0;
+    int wielding = 0;
     Sprite sprite;
 
 

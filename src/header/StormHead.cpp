@@ -204,6 +204,7 @@ void StormHead::Att_shoot1(std::vector<shProjectile>& pvec, SDL_Point chPos) {
             pvec.push_back(shp);
         }
         attack_click ++;
+    Mix_PlayChannel(-1, sound_shoot, 0);
     }
 }
 
@@ -228,6 +229,7 @@ void StormHead::Att_shoot2(std::vector<shProjectile>& pvec, SDL_Point chPos) {
             pvec.push_back(shp);
         }
         attack_click ++;
+    Mix_PlayChannel(-1, sound_shoot, 0);
     }
 }
 
@@ -257,6 +259,7 @@ void StormHead::Att_spawn(std::vector<Golem*>& gols, std::vector<Goblin*>& gobs)
         gobs.push_back(g);
     }
     attack_click++;
+    Mix_PlayChannel(-1, sound_spawn, 0);
 }
 
 int StormHead::GetHealth() {

@@ -178,7 +178,7 @@ void Character::ShootProjectile(int &camX, int &camY, std::vector<Projectile> & 
     double currClock = clock();
     if (((double)currClock - (double)firing_clock) / (double)CLOCKS_PER_SEC >= firingRate) {
         
-        weapon.weilding = 1;
+        weapon.wielding = 1;
         weapon.sprite.InitClock();
         weapon.sprite.SetClipTime(0.05);
         weapon.sprite.SetFrameId(1);
@@ -190,6 +190,9 @@ void Character::ShootProjectile(int &camX, int &camY, std::vector<Projectile> & 
         for (int i = 0; i < 2; i++) p.Update();
         pvec.push_back(p);
     }
+
+    cout << "shoot \n" ;
+    Mix_PlayChannel(-1, sound_shoot, 0);
 }
 
 bool Character::CollideProjectile(shProjectile& p) {
@@ -218,6 +221,7 @@ bool Character::CollideProjectile(shProjectile& p) {
     health --;
     got_hit = true;
     gothit_clock = clock();
+    Mix_PlayChannel(-1, sound_gothit, 0);
     return 1;
     
 }
@@ -243,14 +247,15 @@ bool Character::TakeDamage(SDL_Point ePos, int damage) {
     health --;
     got_hit = true;
     gothit_clock = clock();
+    Mix_PlayChannel(-1, sound_gothit, 0);
     return 1;
 }
 
 
 void Character::AnimateWeapon() {
     if (this->weapon.sprite.Animate())
-        this->weapon.weilding = 0;
-    if (!weapon.weilding) {
+        this->weapon.wielding = 0;
+    if (!weapon.wielding) {
         this->weapon.sprite.SetFrameId(0);
         this->weapon.sprite.SetClipTime(0);
     }

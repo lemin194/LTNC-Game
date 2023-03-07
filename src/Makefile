@@ -32,7 +32,7 @@ LIBRARY_PATHS = -L ..\SDL2\lib
 COMPILER_FLAGS = -w
 
 #LINKER_FLAGS specifies the libraries we're linking against
-LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -static-libstdc++
+LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -static-libstdc++
 
 #OBJ_NAME specifies the name of our exectuable
 OBJ_NAME = ../bin/Debug/main

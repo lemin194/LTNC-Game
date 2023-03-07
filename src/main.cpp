@@ -56,13 +56,16 @@ TTF_Font* GameFloor::gFont;
 TTF_Font* GameFloor::font_ui;
 TTF_Font* font_ui;
 
-
-Sprite spr;
+Mix_Chunk* sound_lose = NULL;
+Mix_Chunk* Character::sound_shoot = NULL;
+Mix_Chunk* Character::sound_gothit = NULL;
+Mix_Chunk* StormHead::sound_shoot = NULL;
+Mix_Chunk* StormHead::sound_spawn = NULL;
 
 
 
 int loadMedia() {
-	bgImage = myLoadTexture("..\\assets\\img.png", renderer);
+	bgImage = myLoadTexture("../assets/img.png", renderer);
 
 	if (bgImage == NULL) {
 		std::cout << "cant load bg.\n";
@@ -70,56 +73,56 @@ int loadMedia() {
 	}
 
 	TileSet::texture = new LTexture();
-	TileSet::texture->LoadFromFile("..\\assets\\sprites\\tileSet_x2.png", renderer);
+	TileSet::texture->LoadFromFile("../assets/sprites/tileSet_x2.png", renderer);
 
 
 	std::string *paths = new std::string[2] {
-						"..\\assets\\sprites\\char\\char.png",
-						"..\\assets\\sprites\\char\\char.png"
+						"../assets/sprites/char/char.png",
+						"../assets/sprites/char/char.png"
 						};
 
 	for (int i = 0; i < 2; i ++) Character::textures[i] = new LTexture();
-	Character::textures[0]->LoadFromFile("..\\assets\\sprites\\char\\char.png", renderer);
-	Character::textures[1]->LoadFromFile("..\\assets\\sprites\\char\\char.png", renderer);
+	Character::textures[0]->LoadFromFile("../assets/sprites/char/char.png", renderer);
+	Character::textures[1]->LoadFromFile("../assets/sprites/char/char.png", renderer);
 
 	Weapon::texture = new LTexture();
-	Weapon::texture->LoadFromFile("..\\assets\\sprites\\char\\weapon-sheet.png", renderer);
+	Weapon::texture->LoadFromFile("../assets/sprites/char/weapon-sheet.png", renderer);
 
 	Golem::texture = new LTexture();
-	Golem::texture->LoadFromFile("..\\assets\\sprites\\enemy\\golem_.png", renderer);
+	Golem::texture->LoadFromFile("../assets/sprites/enemy/golem_.png", renderer);
 
 	Projectile::texture = new LTexture();
-	Projectile::texture->LoadFromFile("..\\assets\\sprites\\projectile.png", renderer);
+	Projectile::texture->LoadFromFile("../assets/sprites/projectile.png", renderer);
 
 	shProjectile::texture = new LTexture();
-	shProjectile::texture->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\bullet.png", renderer);
+	shProjectile::texture->LoadFromFile("../assets/sprites/enemy/stormhead/bullet.png", renderer);
 
 	Goblin::texture = new LTexture();
-	Goblin::texture->LoadFromFile("..\\assets\\sprites\\enemy\\goblin_.png", renderer);
+	Goblin::texture->LoadFromFile("../assets/sprites/enemy/goblin_.png", renderer);
 
 	StormHead::texture_idle = new LTexture();
-	StormHead::texture_idle->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\sh-idle.png", renderer);
+	StormHead::texture_idle->LoadFromFile("../assets/sprites/enemy/stormhead/sh-idle.png", renderer);
 
 	StormHead::texture_run = new LTexture();
-	StormHead::texture_run->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\sh-run.png", renderer);
+	StormHead::texture_run->LoadFromFile("../assets/sprites/enemy/stormhead/sh-run.png", renderer);
 
 	StormHead::texture_attack = new LTexture();
-	StormHead::texture_attack->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\sh-attack.png", renderer);
+	StormHead::texture_attack->LoadFromFile("../assets/sprites/enemy/stormhead/sh-attack.png", renderer);
 
 	StormHead::texture_attack2 = new LTexture();
-	StormHead::texture_attack2->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\sh-attack2.png", renderer);
+	StormHead::texture_attack2->LoadFromFile("../assets/sprites/enemy/stormhead/sh-attack2.png", renderer);
 
 	StormHead::texture_damaged = new LTexture();
-	StormHead::texture_damaged->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\sh-damaged.png", renderer);
+	StormHead::texture_damaged->LoadFromFile("../assets/sprites/enemy/stormhead/sh-damaged.png", renderer);
 
 	StormHead::texture_death = new LTexture();
-	StormHead::texture_death->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\sh-death.png", renderer);
+	StormHead::texture_death->LoadFromFile("../assets/sprites/enemy/stormhead/sh-death.png", renderer);
 
 	StormHead::texture_death = new LTexture();
-	StormHead::texture_death->LoadFromFile("..\\assets\\sprites\\enemy\\stormhead\\sh-death.png", renderer);
+	StormHead::texture_death->LoadFromFile("../assets/sprites/enemy/stormhead/sh-death.png", renderer);
 
 	heart = new LTexture();
-	heart->LoadFromFile("..\\assets\\sprites\\heart.png", renderer);
+	heart->LoadFromFile("../assets/sprites/heart.png", renderer);
 
 
 	int imgFlags = IMG_INIT_PNG;
@@ -134,25 +137,34 @@ int loadMedia() {
 		printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
 	}
 
-	GameFloor::gFont = TTF_OpenFont( "..\\assets\\font\\ARCADECLASSIC.TTF", 64 );
+	GameFloor::gFont = TTF_OpenFont( "../assets/font/ARCADECLASSIC.TTF", 64 );
     if( GameFloor::gFont == NULL )
     {
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
     }
-	font_ui = TTF_OpenFont( "..\\assets\\font\\font_ui.TTF", 48 );
+	font_ui = TTF_OpenFont( "../assets/font/font_ui.TTF", 48 );
     if( font_ui == NULL )
     {
         printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
     }
 	GameFloor::font_ui = font_ui;
 
-	// spr.texture = Character::textures[0];
-	spr.texture = new LTexture();
-	spr.texture->LoadFromFile("..\\assets\\sprites\\projectile.png", renderer);
-	spr.center = {4, 4};
-	spr.clipTime = 0.1;
-	spr.InitClock();
-	spr.AddClip({0, 0, 8, 8});
+	
+	//Initialize SDL_mixer
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+	{
+		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+	}
+
+	sound_lose = Mix_LoadWAV("../assets/sound/sound_lose.wav" );
+	if (sound_lose == NULL ){
+        printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+	}
+
+	Character::sound_shoot = Mix_LoadWAV("../assets/sound/sound_player_shoot.wav");
+	Character::sound_gothit = Mix_LoadWAV("../assets/sound/sound_player_gothit.wav");
+	StormHead::sound_shoot = Mix_LoadWAV("../assets/sound/sound_stormhead_shoot.wav");
+	StormHead::sound_spawn = Mix_LoadWAV("../assets/sound/sound_stormhead_spawn.wav");
 
 	return 1;
 }
@@ -163,7 +175,7 @@ int loadMedia() {
 
 
 int mySdlInit() {
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
+	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 ) {
 		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
 		return 0;
 	}
@@ -222,12 +234,22 @@ void close() {
 	txt_dies     ->Free();
 	txt_healthBar->Free();
 
-	spr.texture->Free();
 
 
 	gTextTexture1.Free();
     TTF_CloseFont( GameFloor::gFont );
 
+
+	Mix_FreeChunk(sound_lose);
+	sound_lose = nullptr;
+	Mix_FreeChunk(Character::sound_shoot);
+	Character::sound_shoot = nullptr;
+	Mix_FreeChunk(Character::sound_gothit);
+	Character::sound_gothit = nullptr;
+	Mix_FreeChunk(StormHead::sound_shoot);
+	StormHead::sound_shoot = nullptr;
+	Mix_FreeChunk(StormHead::sound_spawn);
+	StormHead::sound_spawn = nullptr;
 
 	SDL_DestroyTexture(texture);
 	SDL_DestroyTexture(bgImage);
@@ -237,6 +259,7 @@ void close() {
     TTF_Quit();
     IMG_Quit();
 	SDL_Quit();
+    Mix_Quit();
 
 	std::cout << "closed.";
 }
@@ -249,7 +272,7 @@ int main( int argc, char* args[] )
 
 	int ok = mySdlInit();
 
-	SDL_Surface* icon = myLoadSurface("..\\assets\\icon.png", screenSurface->format, renderer);
+	SDL_Surface* icon = myLoadSurface("../assets/icon.png", screenSurface->format, renderer);
 	SDL_SetWindowIcon(window, icon);
 
 
@@ -390,6 +413,7 @@ int main( int argc, char* args[] )
 
 				if (curr_floor->IsLose()) {
 					IsLose = true;
+					Mix_PlayChannel(-1, sound_lose, 0);
 				}
 				if (curr_floor->IsWin()) {
 					IsWin = true;

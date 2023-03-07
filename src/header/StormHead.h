@@ -14,6 +14,8 @@ public:
     static LTexture* texture_attack2;
     static LTexture* texture_damaged;
     static LTexture* texture_death;
+    static Mix_Chunk* sound_shoot;
+    static Mix_Chunk* sound_spawn;
     StormHead();
     StormHead(const StormHead& e);
     StormHead& operator=(const StormHead& e);
