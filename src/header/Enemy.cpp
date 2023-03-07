@@ -159,6 +159,7 @@ bool Enemy::CollideProjectile(Projectile& p) {
     health --;
     got_hit = true;
     if (!health) dying_clock = clock();
+    Mix_PlayChannel(-1, sound_gothit, 0);
     return 1;
 
 }
@@ -184,7 +185,6 @@ Enemy::Enemy() {
     hitbox_h = 0;
     dawdlen = 100;
     dawdlingInterval = dawdleInterval + (rand() % 100) * 0.005;
-    dyingDuration = 4;
     dawddir = 0;
     dawdled = 0;
     dawdling = false;
@@ -210,9 +210,8 @@ Enemy::~Enemy() {
     hitbox_y = 0;
     hitbox_w = 0;
     hitbox_h = 0;
-    dawdlen = 100;
-    dawdlingInterval = 2;
-    dyingDuration = 4;
+    dawdlen = 0;
+    dawdlingInterval = 0;
     dawddir = 0;
     dawdled = 0;
     dawdling = false;

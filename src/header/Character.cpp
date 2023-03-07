@@ -191,7 +191,6 @@ void Character::ShootProjectile(int &camX, int &camY, std::vector<Projectile> & 
         pvec.push_back(p);
     }
 
-    cout << "shoot \n" ;
     Mix_PlayChannel(-1, sound_shoot, 0);
 }
 

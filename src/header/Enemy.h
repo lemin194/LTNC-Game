@@ -12,6 +12,8 @@ public:
     Enemy& operator=(const Enemy& e);
     ~Enemy();
 
+    static Mix_Chunk* sound_gothit;
+
     void AddForce(double hacc, double vacc);
     void ChaseCharacter(Character& c);
     void InitHitbox(int x, int y, int w, int h) ;
@@ -30,7 +32,8 @@ protected:
     const double dawdleInterval = 1.75;
     double hvel, vvel, hacc, vacc;
     double hitbox_x, hitbox_y, hitbox_w, hitbox_h;
-    double dawdlen = 100, dawdlingInterval = 1.5, dyingDuration = 4;
+    double dawdlen = 100, dawdlingInterval = 1.5;
+    const double dyingDuration = 1;
     double dawddir = 0, dawdled = 0;
     clock_t dawdling_clock, got_hit_clock, dying_clock;
 

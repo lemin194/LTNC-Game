@@ -5,6 +5,7 @@ GameGUI::GameGUI(TTF_Font* font, vector<string> options) {
     for (auto s : options) {
         this->options.push_back(s);
     }
+    yOffset = (options.size() - 1) * h;
 }
 
 GameGUI::~GameGUI() {
@@ -15,7 +16,7 @@ GameGUI::~GameGUI() {
 int GameGUI::HandleMouseEvent(SDL_Event e) {
     
     int posX = SCREEN_WIDTH / 2 - w / 2;
-    int posY = SCREEN_HEIGHT / 2 - 32;
+    int posY = SCREEN_HEIGHT / 2 - yOffset;
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
     SDL_Rect mouseRect = {mouseX, mouseY, 1, 1};
@@ -36,7 +37,7 @@ int GameGUI::HandleMouseEvent(SDL_Event e) {
 
 void GameGUI::Render(SDL_Renderer* renderer) {
     int posX = SCREEN_WIDTH / 2 - w / 2;
-    int posY = SCREEN_HEIGHT / 2 - 32;
+    int posY = SCREEN_HEIGHT / 2 - yOffset;
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
     SDL_Rect mouseRect = {mouseX, mouseY, 1, 1};

@@ -9,8 +9,7 @@
 #include "header/Golem.h"
 #include "header/Goblin.h"
 #include "header/StormHead.h"
-#include "header/Floor1.h"
-#include "header/Button.h"
+#include "header/GameFloor.h"
 #include "header/shProjectile.h"
 #include "header/LTimer.h"
 #include "header/GameGUI.h"
@@ -21,8 +20,6 @@
 Character c;
 TileSet tileSet;
 
-
-LTexture gTextTexture1;
 
 SDL_Texture* bgImage;
 SDL_Rect camera;
@@ -57,10 +54,25 @@ TTF_Font* GameFloor::font_ui;
 TTF_Font* font_ui;
 
 Mix_Chunk* sound_lose = NULL;
+Mix_Chunk* sound_win = NULL;
 Mix_Chunk* Character::sound_shoot = NULL;
 Mix_Chunk* Character::sound_gothit = NULL;
 Mix_Chunk* StormHead::sound_shoot = NULL;
 Mix_Chunk* StormHead::sound_spawn = NULL;
+Mix_Chunk* StormHead::sound_gothit = NULL;
+Mix_Chunk* Enemy::sound_gothit = NULL;
+
+
+
+
+SDL_Renderer* GameFloor::renderer;
+LTimer capTimer;
+
+GameFloor* curr_floor;
+GameGUI* menu;
+GameGUI* winning;
+GameGUI* losing;
+GameGUI* floor_choosing;
 
 
 
@@ -160,11 +172,13 @@ int loadMedia() {
 	if (sound_lose == NULL ){
         printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
 	}
-
+	sound_win = Mix_LoadWAV("../assets/sound/sound_win.wav" );
 	Character::sound_shoot = Mix_LoadWAV("../assets/sound/sound_player_shoot.wav");
 	Character::sound_gothit = Mix_LoadWAV("../assets/sound/sound_player_gothit.wav");
 	StormHead::sound_shoot = Mix_LoadWAV("../assets/sound/sound_stormhead_shoot.wav");
 	StormHead::sound_spawn = Mix_LoadWAV("../assets/sound/sound_stormhead_spawn.wav");
+	StormHead::sound_gothit = Mix_LoadWAV("../assets/sound/sound_enemy_gothit.wav");
+	Enemy::sound_gothit = Mix_LoadWAV("../assets/sound/sound_enemy_gothit.wav");
 
 	return 1;
 }
@@ -206,17 +220,6 @@ int mySdlInit() {
 	return 1;
 }
 
-SDL_Renderer* GameFloor::renderer;
-LTimer capTimer;
-
-GameFloor* curr_floor;
-
-LTexture* txt_healthBar;
-LTexture* txt_dies     ;
-GameGUI* menu;
-GameGUI* winning;
-GameGUI* losing;
-
 
 
 void close() {
@@ -227,21 +230,29 @@ void close() {
 	Projectile::texture->Free();
 	Golem::texture->Free();
 
+
+	TileSet::texture = nullptr;
+	Character::textures[0] = nullptr;
+	Character::textures[1] = nullptr;
+	Weapon::texture = nullptr;
+	Projectile::texture = nullptr;
+	Golem::texture = nullptr;
+
+	
 	delete menu;
 	delete winning;
 	delete losing;
 	delete curr_floor;
-	txt_dies     ->Free();
-	txt_healthBar->Free();
+	
 
 
-
-	gTextTexture1.Free();
     TTF_CloseFont( GameFloor::gFont );
 
 
 	Mix_FreeChunk(sound_lose);
 	sound_lose = nullptr;
+	Mix_FreeChunk(sound_win);
+	sound_win = nullptr;
 	Mix_FreeChunk(Character::sound_shoot);
 	Character::sound_shoot = nullptr;
 	Mix_FreeChunk(Character::sound_gothit);
@@ -250,6 +261,10 @@ void close() {
 	StormHead::sound_shoot = nullptr;
 	Mix_FreeChunk(StormHead::sound_spawn);
 	StormHead::sound_spawn = nullptr;
+	Mix_FreeChunk(StormHead::sound_gothit);
+	StormHead::sound_gothit = nullptr;
+	Mix_FreeChunk(Enemy::sound_gothit);
+	Enemy::sound_gothit = nullptr;
 
 	SDL_DestroyTexture(texture);
 	SDL_DestroyTexture(bgImage);
@@ -282,9 +297,6 @@ int main( int argc, char* args[] )
 
 
 
-	txt_healthBar = new LTexture();
-	txt_dies      = new LTexture();
-
 	vector<string> menu_options;
 	menu_options.push_back("Play");
 	menu_options.push_back("Exit");
@@ -302,82 +314,80 @@ int main( int argc, char* args[] )
 	losing_options.push_back("Main Menu");
 	losing = new GameGUI(font_ui, losing_options);
 	
+	vector<string> path_floors;
+	path_floors.push_back("../assets/maps/floor1.txt");
+	path_floors.push_back("../assets/maps/floor2.txt");
+	vector<string> floor_names;
+	floor_names.push_back("Floor 1");
+	floor_names.push_back("Floor 2");
+	int floor_id = 0;
+	floor_choosing = new GameGUI(font_ui, floor_names);
 
-
-	txt_healthBar->loadFromRenderedText("Health:", {255, 255, 255, 255}, font_ui, renderer);
-	txt_dies->loadFromRenderedText("You Died. Press R to restart.", {255, 255, 255, 255}, font_ui, renderer);
 	auto restart = [&] () {
-		curr_floor = new Floor1();
-		curr_floor->GameInit();
+		curr_floor = new GameFloor();
+		curr_floor->GameInit(path_floors[floor_id]);
 		curr_floor->player->health = 5;
 		
-	};
-	restart();
-
-	auto render_txt = [&] (LTexture* txt_texture, int x, int y) {
-		txt_texture->Render(x, y, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
 	};
 
 	int pause = 0;
 	int quit = 0;
-	bool Playing = false;
-	bool IsWin = false, IsLose = false;
+	enum GameState {MainMenu, FloorChoosing, Playing, Win, Lose};
+	int curr_gamestate = GameState::MainMenu;
 	while( true )
 	{
+		capTimer.start();
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			if (e.type == SDL_QUIT) {
 				quit = true;
 				break;
 			}
-			if (!Playing) {
+			if (curr_gamestate == GameState::MainMenu) {
 				int btn_click = menu->HandleMouseEvent(e);
 				if (btn_click == 2) {
 					quit = true;
 					break;
 				}
 				if (btn_click == 1) {
-					Playing = true;
+					curr_gamestate = GameState::FloorChoosing;
+				}
+			}
+			else if (curr_gamestate == GameState::FloorChoosing) {
+				int btn_click = floor_choosing->HandleMouseEvent(e);
+				if (btn_click > 0) {
+					floor_id = btn_click - 1;
+					curr_gamestate = GameState::Playing;
 					restart();
 				}
 			}
-			else {
+			else if (curr_gamestate == GameState::Playing) {
 				if (e.type == SDL_KEYDOWN) {
 					if (e.key.keysym.sym == SDLK_r) {
 						restart();
 					}
 				}
 
-				if (!IsWin && !IsLose) {
-					curr_floor->HandleMouseEvents(e);
+				curr_floor->HandleMouseEvents(e);
+			}
+			else if (curr_gamestate == GameState::Win) {
+				int btn_click = winning->HandleMouseEvent(e);
+				if (btn_click == 2) {
+					curr_gamestate = GameState::Playing;
+					restart();
 				}
-				else if (IsWin) {
-					int btn_click = winning->HandleMouseEvent(e);
-					if (btn_click == 2) {
-						Playing = true;
-						IsWin = false;
-						IsLose = false;
-						restart();
-					}
-					if (btn_click == 3) {
-						Playing = false;
-						IsWin = false;
-						IsLose = false;
-					}
+				if (btn_click == 3) {
+					curr_gamestate = GameState::MainMenu;
 				}
-				else if (IsLose) {
-					int btn_click = losing->HandleMouseEvent(e);
-					if (btn_click == 2) {
-						Playing = true;
-						IsWin = false;
-						IsLose = false;
-						restart();
-					}
-					if (btn_click == 3) {
-						Playing = false;
-						IsWin = false;
-						IsLose = false;
-					}
+			}
+			else if (curr_gamestate == GameState::Lose) {
+				int btn_click = losing->HandleMouseEvent(e);
+				if (btn_click == 2) {
+					curr_gamestate = GameState::Playing;
+					restart();
+				}
+				if (btn_click == 3) {
+					curr_gamestate = GameState::MainMenu;
 				}
 			}
 		}
@@ -387,57 +397,58 @@ int main( int argc, char* args[] )
 
 		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
 		SDL_RenderClear(renderer);
-		if (!Playing) {
+		if (curr_gamestate == GameState::MainMenu) {
 
 			/// Draw
 
 			menu->Render(renderer);
 
 		}
+		else if (curr_gamestate == GameState::FloorChoosing) {
+			floor_choosing -> Render(renderer);
+		}
 
-		else  {
-			if (!IsLose && !IsWin) {
-				
-				curr_floor->Update();
+		else if (curr_gamestate == GameState::Playing){
+			curr_floor->Update();
 
-				int &health = curr_floor->player->health;
+			int &health = curr_floor->player->health;
 
-				const Uint8* key_state = SDL_GetKeyboardState(NULL);
+			const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-				if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
+			if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
 
-				/// Draw
-				
-				curr_floor->Draw();
+			/// Draw
+			
+			curr_floor->Draw();
 
 
-				if (curr_floor->IsLose()) {
-					IsLose = true;
-					Mix_PlayChannel(-1, sound_lose, 0);
-				}
-				if (curr_floor->IsWin()) {
-					IsWin = true;
-				}
+			if (curr_floor->IsLose()) {
+				curr_gamestate = GameState::Lose;
+				Mix_PlayChannel(-1, sound_lose, 0);
 			}
-			else if (IsLose) {
-				losing->Render(renderer);
-			}
-			else if (IsWin) {
-				winning->Render(renderer);
+			if (curr_floor->IsWin()) {
+				curr_gamestate = GameState::Win;
+				Mix_PlayChannel(-1, sound_win, 0);
 			}
 		}
+		else if (curr_gamestate == GameState::Lose) {
+			losing->Render(renderer);
+		}
+		else if (curr_gamestate == GameState::Win) {
+			winning->Render(renderer);
+		}
+		
 		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
 
 
 		SDL_RenderPresent(renderer);
 
 
-
 		int frameTicks = capTimer.getTicks();
 		if( frameTicks < SCREEN_TICKS_PER_FRAME )
 		{
 			//Wait remaining time
-			SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
+			SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks);
 		}
 
 	}

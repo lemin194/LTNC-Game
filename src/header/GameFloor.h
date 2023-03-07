@@ -18,21 +18,21 @@ public :
     static TTF_Font* font_ui;
     static SDL_Renderer* renderer;
     GameFloor();
-    virtual ~GameFloor();
-    virtual void GameInit();
-    
+    ~GameFloor();
+    void GameInit(string path);
 
-    virtual int HandleMouseEvents(SDL_Event e);
 
-    virtual void Update();
-    virtual void Draw();
+    int HandleMouseEvents(SDL_Event e);
+
+    void Update();
+    void Draw();
 
     bool IsWin();
     bool IsLose();
     Character* player;
     int GetHealth();
 
-protected:
+private:
     SDL_Rect camera;
     int mouseX, mouseY;
     std::vector<Projectile> projectile_vec;
@@ -41,6 +41,8 @@ protected:
     std::vector<Goblin*> gobs;
     StormHead* stormhead;
     LTexture* heart;
+    
+    TileSet tileSet;
 
     
 

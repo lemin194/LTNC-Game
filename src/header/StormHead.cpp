@@ -235,7 +235,7 @@ void StormHead::Att_shoot2(std::vector<shProjectile>& pvec, SDL_Point chPos) {
 
 void StormHead::Att_spawn(std::vector<Golem*>& gols, std::vector<Goblin*>& gobs) {
     if (attack_click != 1 && attack_click != 3) return; 
-    if (gols.size() + gobs.size() > 100) return;
+    if (gols.size() + gobs.size() > 25) return;
     double sx = hitbox_x + hitbox_w * 0.5;
     double sy = hitbox_y + hitbox_h * 0.5;
     int mob_num = 2;
@@ -275,6 +275,7 @@ bool StormHead::CollideProjectile(Projectile& p) {
     health --;
     got_hit = true;
     for (int i = 0; i < 6; i++) sprites[i].SetFrameId(0);
+    Mix_PlayChannel(-1, sound_gothit, 0);
     return 1;
 
 }

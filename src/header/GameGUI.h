@@ -2,8 +2,7 @@
 #define GAMEGUI_H_
 
 #include "GameBase.h"
-#include "Button.h"
-
+#include "LTexture.h"
 class GameGUI {
 public:
     GameGUI(TTF_Font* font, vector<string> options);
@@ -15,6 +14,7 @@ private:
     vector<string> options;
     TTF_Font* font;
     const int w = 240, h = 32;
+    int yOffset;
 
 };
 

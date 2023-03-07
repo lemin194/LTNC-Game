@@ -12,9 +12,7 @@ OBJS = main.cpp \
 		header/Enemy.cpp\
 		header/StormHead.cpp\
 		header/GameFloor.cpp\
-		header/Floor1.cpp\
 		header/LTimer.cpp\
-		header/Button.cpp \
 		header/GameGUI.cpp \
 
 #CC specifies which compiler we're using

@@ -11,7 +11,6 @@ public:
     static LTexture* texture;
     void Init(int w, int h) ;
     void LoadMap(std::string path);
-    void LoadMapCollision(std::string path);
 
     void CollideCharacter(Character& c);
     void CollideEnemy(Enemy& e);
@@ -24,7 +23,7 @@ public:
 private:
     int tile_w, tile_h, map_w, map_h;
     Sprite tile;
-    std::vector<std::vector<int>> vec;
+    std::vector<std::vector<std::vector<int>>> tilemap;
     std::vector<std::vector<int>> vec_col;
 };
 
