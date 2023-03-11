@@ -5,6 +5,7 @@
 #include "Weapon.h"
 #include "Projectile.h"
 #include "shProjectile.h"
+#include "Fireball.h"
 
 class Character {
 public:
@@ -21,6 +22,7 @@ public:
     void AddForce(double hacc, double vacc);
     void ReceiveMouseInput(int &camX, int &camY);
     void ShootProjectile(int &camX, int &camY, std::vector<Projectile> & pvec);
+    void SpecialAttack (int &camX, int &camY, std::vector<Projectile> & pvec);
     void Render(SDL_Renderer* renderer, int camX, int camY);
     void InitHitbox(int x, int y, int w, int h) ;
     SDL_Rect GetHitbox();
@@ -32,6 +34,8 @@ public:
     bool CollideProjectile(shProjectile& p);
     bool TakeDamage(SDL_Point ePos, int damage);
     int health = 5;
+    int mana = 0;
+    const int MAX_MANA = 500;
     
 private:
     const double MAX_SPEED = 9.0;
@@ -46,7 +50,9 @@ private:
     int curr_sprite = 0;
 
     clock_t firing_clock;
-    double firingRate;
+    const double firingRate = 0.12;
+    const int special_attack_mana = 100;
+    const int mana_regen = 1;
 
     Weapon weapon;
 

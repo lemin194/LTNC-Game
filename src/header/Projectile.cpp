@@ -6,21 +6,24 @@ void Projectile::InitSprite() {
 
     spr_width  = texture->GetWidth ();
     spr_height = texture->GetHeight();
+    
     hitbox_w = spr_width; hitbox_h = spr_height;
 
-    spr_offsetX = - spr_width / 2 + hitbox_w / 2;
-    spr_offsetY = - spr_height / 2 + hitbox_h / 2;
+    sprite.center = {spr_width / 2, spr_height / 2};
+    spr_offsetX = - sprite.center.x + hitbox_w / 2;
+    spr_offsetY = - sprite.center.y + hitbox_h / 2;
     
-    // std::cout << spr_width << " " << spr_height << " " << spr_offsetX << " " << spr_offsetY << "\n";
 
+    spr_init_angle = 0;
 
     sprite.AddClip({0, 0, spr_width, spr_height});
     sprite.clipTime = 0;
 }
 
 void Projectile::Init(int x, int y, double rad, double speed) {
-    this->hitbox_x = x;
-    this->hitbox_y = y;
+    pos = {x, y};
+    hitbox_x = pos.x - hitbox_w / 2;
+    hitbox_y = pos.y - hitbox_h / 2;
     this->rad = rad;
     this->speed = speed;
 }
@@ -31,6 +34,8 @@ void Projectile::Update() {
 
     this->hitbox_x += xmove;
     this->hitbox_y += ymove;
+    sprite.angle = spr_init_angle - rad * 180 / PI;
+    sprite.Animate();
 }
 
 SDL_FPoint Projectile::GetSpeed() {

@@ -17,6 +17,7 @@ public:
     static Mix_Chunk* sound_shoot;
     static Mix_Chunk* sound_spawn;
     static Mix_Chunk* sound_gothit;
+    static Mix_Chunk* sound_dies;
     StormHead();
     StormHead(const StormHead& e);
     StormHead& operator=(const StormHead& e);
@@ -48,7 +49,7 @@ private:
 
     bool attacking = 0, spawning = 0;
     int got_hit = false;
-    int health = 1500;
+    int health = 0;
     double chasingSpeed = 0;
 
     double chaseDist2 = 200 * 200;
@@ -58,6 +59,7 @@ private:
 
     int curr_attack = 0;
     bool idling = 0;
+    bool dying = false;
     
     int curr_sprite;
     int attack_click = 0;

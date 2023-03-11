@@ -11,6 +11,7 @@
 #include "header/StormHead.h"
 #include "header/GameFloor.h"
 #include "header/shProjectile.h"
+#include "header/Fireball.h"
 #include "header/LTimer.h"
 #include "header/GameGUI.h"
 
@@ -21,7 +22,6 @@ Character c;
 TileSet tileSet;
 
 
-SDL_Texture* bgImage;
 SDL_Rect camera;
 std::vector<Projectile> projector_vec;
 std::vector<Golem*> gols;
@@ -31,7 +31,6 @@ std::vector<Goblin*> gobs;
 SDL_Surface* screenSurface = NULL;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
-SDL_Texture* texture = NULL;
 
 LTexture* Weapon::texture;
 LTexture* Character::textures[3];
@@ -46,6 +45,7 @@ LTexture* StormHead::texture_attack2;
 LTexture* StormHead::texture_damaged;
 LTexture* StormHead::texture_death;
 LTexture* shProjectile::texture;
+LTexture* Fireball::texture;
 
 LTexture* heart;
 
@@ -60,6 +60,7 @@ Mix_Chunk* Character::sound_gothit = NULL;
 Mix_Chunk* StormHead::sound_shoot = NULL;
 Mix_Chunk* StormHead::sound_spawn = NULL;
 Mix_Chunk* StormHead::sound_gothit = NULL;
+Mix_Chunk* StormHead::sound_dies = NULL;
 Mix_Chunk* Enemy::sound_gothit = NULL;
 
 
@@ -77,12 +78,7 @@ GameGUI* floor_choosing;
 
 
 int loadMedia() {
-	bgImage = myLoadTexture("../assets/img.png", renderer);
-
-	if (bgImage == NULL) {
-		std::cout << "cant load bg.\n";
-		return 0;
-	}
+	
 
 	TileSet::texture = new LTexture();
 	TileSet::texture->LoadFromFile("../assets/sprites/tileSet_x2.png", renderer);
@@ -108,6 +104,9 @@ int loadMedia() {
 
 	shProjectile::texture = new LTexture();
 	shProjectile::texture->LoadFromFile("../assets/sprites/enemy/stormhead/bullet.png", renderer);
+
+	Fireball::texture = new LTexture();
+	Fireball::texture->LoadFromFile("../assets/sprites/char/fb-sheet.png", renderer);
 
 	Goblin::texture = new LTexture();
 	Goblin::texture->LoadFromFile("../assets/sprites/enemy/goblin_.png", renderer);
@@ -178,8 +177,8 @@ int loadMedia() {
 	StormHead::sound_shoot = Mix_LoadWAV("../assets/sound/sound_stormhead_shoot.wav");
 	StormHead::sound_spawn = Mix_LoadWAV("../assets/sound/sound_stormhead_spawn.wav");
 	StormHead::sound_gothit = Mix_LoadWAV("../assets/sound/sound_enemy_gothit.wav");
+	StormHead::sound_dies = Mix_LoadWAV("../assets/sound/sound_stormhead_dies.wav");
 	Enemy::sound_gothit = Mix_LoadWAV("../assets/sound/sound_enemy_gothit.wav");
-
 	return 1;
 }
 
@@ -229,6 +228,14 @@ void close() {
 	Weapon::texture->Free();
 	Projectile::texture->Free();
 	Golem::texture->Free();
+	Goblin::texture->Free();
+	Fireball::texture->Free();
+	StormHead::texture_attack2->Free();
+	StormHead::texture_attack->Free();
+	StormHead::texture_damaged->Free();
+	StormHead::texture_death->Free();
+	StormHead::texture_idle->Free();
+	StormHead::texture_run->Free();
 
 
 	TileSet::texture = nullptr;
@@ -237,6 +244,14 @@ void close() {
 	Weapon::texture = nullptr;
 	Projectile::texture = nullptr;
 	Golem::texture = nullptr;
+	Goblin::texture = nullptr;
+	Fireball::texture = nullptr;
+	StormHead::texture_attack2 = nullptr;
+	StormHead::texture_attack = nullptr;
+	StormHead::texture_damaged = nullptr;
+	StormHead::texture_death = nullptr;
+	StormHead::texture_idle = nullptr;
+	StormHead::texture_run = nullptr;
 
 	
 	delete menu;
@@ -263,18 +278,18 @@ void close() {
 	StormHead::sound_spawn = nullptr;
 	Mix_FreeChunk(StormHead::sound_gothit);
 	StormHead::sound_gothit = nullptr;
+	Mix_FreeChunk(StormHead::sound_dies);
+	StormHead::sound_dies = nullptr;
 	Mix_FreeChunk(Enemy::sound_gothit);
 	Enemy::sound_gothit = nullptr;
 
-	SDL_DestroyTexture(texture);
-	SDL_DestroyTexture(bgImage);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 
     TTF_Quit();
     IMG_Quit();
-	SDL_Quit();
     Mix_Quit();
+	SDL_Quit();
 
 	std::cout << "closed.";
 }
@@ -334,6 +349,8 @@ int main( int argc, char* args[] )
 	int quit = 0;
 	enum GameState {MainMenu, FloorChoosing, Playing, Win, Lose};
 	int curr_gamestate = GameState::MainMenu;
+
+
 	while( true )
 	{
 		capTimer.start();
@@ -342,6 +359,9 @@ int main( int argc, char* args[] )
 			if (e.type == SDL_QUIT) {
 				quit = true;
 				break;
+			}
+			if (e.key.keysym.sym == SDLK_ESCAPE) {
+				curr_gamestate = GameState::MainMenu;
 			}
 			if (curr_gamestate == GameState::MainMenu) {
 				int btn_click = menu->HandleMouseEvent(e);
@@ -437,6 +457,8 @@ int main( int argc, char* args[] )
 		else if (curr_gamestate == GameState::Win) {
 			winning->Render(renderer);
 		}
+		
+
 		
 		SDL_SetRenderDrawColor(renderer, 0x2A, 0x2A, 0x2A, 0xFF);
 

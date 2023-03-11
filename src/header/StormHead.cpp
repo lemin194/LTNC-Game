@@ -156,30 +156,35 @@ SDL_Rect StormHead::GetHitbox() {
 
 
 void StormHead::Update(std::vector<shProjectile>& pvec, std::vector<Golem*>& gols, std::vector<Goblin*>& gobs, SDL_Point chPos) {
-    clock_t curr_time = clock();
-    if (((double)curr_time - (double)mClock) / CLOCKS_PER_SEC > next_attack_interval) {
-        curr_attack = (curr_attack + 1) % ATTACK_STATE_COUNT;
-        if (curr_attack == 0) curr_attack ++;
-        attack_done = 0;
-        attack_click = 0;
-        mClock = clock();
+    if (!dying && health <= 0) {
+        dying = true;
     }
-    if (!attack_done) {
-        got_hit = false;
-        if (this->curr_attack == ATT_IDLE) {
-            attack_done = 1;
+    if (!dying) {
+        clock_t curr_time = clock();
+        if (((double)curr_time - (double)mClock) / CLOCKS_PER_SEC > next_attack_interval) {
+            curr_attack = (curr_attack + 1) % ATTACK_STATE_COUNT;
+            if (curr_attack <= 0) curr_attack ++;
+            attack_done = 0;
             attack_click = 0;
+            mClock = clock();
         }
-        else if (this->curr_attack == ATT_SPAWN) {
-            if (attack_click == 1 || attack_click == 3) Att_spawn(gols, gobs);
-        }
-        else if (this->curr_attack == ATT_SHOOT1) {
-            if (attack_click >= 1 && attack_click <= 4) Att_shoot1(pvec, chPos);
+        if (!attack_done) {
+            got_hit = false;
+            if (this->curr_attack == ATT_IDLE) {
+                attack_done = 1;
+                attack_click = 0;
+            }
+            else if (this->curr_attack == ATT_SPAWN) {
+                if (attack_click == 1 || attack_click == 3) Att_spawn(gols, gobs);
+            }
+            else if (this->curr_attack == ATT_SHOOT1) {
+                if (attack_click >= 1 && attack_click <= 4) Att_shoot1(pvec, chPos);
 
-        }
-        else if (this->curr_attack == ATT_SHOOT2) {
-            if (attack_click >= 1 && attack_click <= 5) Att_shoot2(pvec, chPos);
-            
+            }
+            else if (this->curr_attack == ATT_SHOOT2) {
+                if (attack_click >= 1 && attack_click <= 5) Att_shoot2(pvec, chPos);
+                
+            }
         }
     }
 }
@@ -199,8 +204,8 @@ void StormHead::Att_shoot1(std::vector<shProjectile>& pvec, SDL_Point chPos) {
             double theta = angle_gap * i + shotDir;
             theta = PI * theta / 180;
             shProjectile shp;
-            shp.Init(sx + radius * sin(theta), sy + radius * cos(theta), theta, bullet_speed);
             shp.InitSprite();
+            shp.Init(sx + radius * sin(theta), sy + radius * cos(theta), theta, bullet_speed);
             pvec.push_back(shp);
         }
         attack_click ++;
@@ -224,8 +229,8 @@ void StormHead::Att_shoot2(std::vector<shProjectile>& pvec, SDL_Point chPos) {
             double theta = angle_gap * i - angle_gap / 2 + shotDir;
             theta = PI * theta / 180;
             shProjectile shp;
-            shp.Init(sx + radius * sin(theta), sy + radius * cos(theta), shotDir * PI / 180, bullet_speed);
             shp.InitSprite();
+            shp.Init(sx + radius * sin(theta), sy + radius * cos(theta), shotDir * PI / 180, bullet_speed);
             pvec.push_back(shp);
         }
         attack_click ++;
@@ -270,11 +275,15 @@ int StormHead::GetHealth() {
 bool StormHead::CollideProjectile(Projectile& p) {
     SDL_Rect rcheck = p.GetHitbox();
     if (!CheckCollisionRectangle(rcheck, GetHitbox())) return 0;
-    if (!attack_done) return 1;
-    
+    if (dying) return 0;
     health --;
-    got_hit = true;
-    for (int i = 0; i < 6; i++) sprites[i].SetFrameId(0);
+    if (health <= 0) {
+        Mix_PlayChannel(-1, sound_dies, 0);
+    }
+    if (attack_done) {
+        got_hit = true;
+        for (int i = 0; i < 6; i++) sprites[i].SetFrameId(0);
+    }
     Mix_PlayChannel(-1, sound_gothit, 0);
     return 1;
 
@@ -316,6 +325,7 @@ StormHead::StormHead() {
     chasingSpeed = 0;
     curr_attack = 0;
     attack_click = 0;
+    dying = false;
 
     next_attack_interval = 3.25;
     shooting_interval = 0.2;

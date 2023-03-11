@@ -10,6 +10,7 @@ int GameFloor::HandleMouseEvents(SDL_Event e) {
 	rightClicked = e.button.button == SDL_BUTTON_RIGHT;
 
 	if (leftClicked) player->ShootProjectile(camera.x, camera.y, projectile_vec);
+	if (rightClicked) player->SpecialAttack(camera.x, camera.y, projectile_vec);
 	SDL_GetMouseState(&mouseX, &mouseY);
 	// if (rightClicked) {
 	// 	Golem* g = new Golem();
@@ -145,7 +146,7 @@ void GameFloor::Update() {
 		g->ChaseCharacter(*player);
 
 	SDL_Point chPos = {px + pw / 2, py + ph / 2};
-	if (stormhead->GetHealth() > 0)
+	
 	stormhead->Update(epvec, gols, gobs, chPos);
 
 
@@ -238,22 +239,34 @@ void GameFloor::Draw() {
 	player->Render(renderer, camera.x, camera.y);
 
 
-	SDL_Point txt_healthBar_pos = {8, 8};
-    LTexture txt_healthBar;
-    txt_healthBar.loadFromRenderedText("Health:", {255, 255, 255, 255}, font_ui, renderer);
-    txt_healthBar.Render(txt_healthBar_pos.x, txt_healthBar_pos.y, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
-    // SDL_Rect r = {txt_healthBar_pos.x, txt_healthBar_pos.y, txt_healthBar->GetWidth(), txt_healthBar->GetHeight()};
+	SDL_Point ui_pos = {8, 8};
+	SDL_Point curr_pos = ui_pos;
+    LTexture txt_health, txt_mana;
+    txt_health.loadFromRenderedText("Health:", {255, 255, 255, 255}, font_ui, renderer);
+    txt_mana.loadFromRenderedText("Mana:", {255, 255, 255, 255}, font_ui, renderer);
+    txt_health.Render(curr_pos.x, curr_pos.y, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
+    // SDL_Rect r = {curr_pos.x, curr_pos.y, txt_health->GetWidth(), txt_health->GetHeight()};
     // SDL_RenderDrawRect(renderer, &r);
-    SDL_Point heart_pos = {txt_healthBar_pos.x + txt_healthBar.GetWidth(), txt_healthBar_pos.y + txt_healthBar.GetHeight() / 2};
+    SDL_Point heart_pos = {curr_pos.x + txt_health.GetWidth(), curr_pos.y + txt_health.GetHeight() / 2};
     int spacing = 0;
     int health = player->health;
     for (int i = 1; i <= health; i++) {
         int curr_x = heart_pos.x + (i - 1) * (spacing + heart->GetWidth());
         heart->Render(curr_x, heart_pos.y - heart->GetHeight() / 2, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
     }
+	curr_pos.y += txt_health.GetHeight();
+	SDL_Point mana_pos = {heart_pos.x, curr_pos.y + txt_mana.GetHeight() / 2};
+    txt_mana.Render(curr_pos.x, curr_pos.y, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
+	int manaBar_height = 24, manaBar_width = 144;
+	SDL_Rect manaBar_bg_rect = {mana_pos.x, mana_pos.y - manaBar_height / 2, manaBar_width, manaBar_height};
+	SDL_Rect manaBar_rect = {mana_pos.x, mana_pos.y - manaBar_height / 2, manaBar_width * player->mana / player->MAX_MANA, manaBar_height};
+	SDL_SetRenderDrawColor(renderer, 0, 32, 128, 255);
+	SDL_RenderFillRect(renderer, &manaBar_bg_rect);
+	SDL_SetRenderDrawColor(renderer, 32, 128, 255, 255);
+	SDL_RenderFillRect(renderer, &manaBar_rect);
 
-    txt_healthBar.Free();
-
+    txt_health.Free();
+	txt_mana.Free();
 }
 
 

@@ -7,8 +7,6 @@ void Character::InitHitbox(int x, int y, int w, int h) {
     hitbox_w = w;
     hitbox_h = h;
 
-    firing_clock = clock();
-    firingRate = .12;
 
 }
 
@@ -71,6 +69,8 @@ void Character::Update() {
             gothit_clock = clock();
         }
     }
+
+    mana = min(MAX_MANA, mana + mana_regen);
 }
 
 void Character::Collide(SDL_Rect rcheck) {
@@ -168,8 +168,6 @@ void Character::ShootProjectile(int &camX, int &camY, std::vector<Projectile> & 
     int py = hitbox_y + hitbox_h * 0.5;
     double tarX = (2 * px + mouseX) / 3;
     double tarY = (2 * py + mouseY) / 3;
-	camX += (tarX - cam_cen_x) * 0.1;
-	camY += (tarY - cam_cen_y) * 0.1;
 
     double deltax = mouseX + camX - px;
     double deltay = mouseY + camY - py;
@@ -189,9 +187,55 @@ void Character::ShootProjectile(int &camX, int &camY, std::vector<Projectile> & 
         p.Init(px, py, PI - rad, 6);
         for (int i = 0; i < 2; i++) p.Update();
         pvec.push_back(p);
+        Mix_PlayChannel(-1, sound_shoot, 0);
+
     }
 
-    Mix_PlayChannel(-1, sound_shoot, 0);
+}
+
+void Character::SpecialAttack(int &camX, int &camY, std::vector<Projectile> & pvec) {
+    if (special_attack_mana > mana) return;
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+	double cam_cen_x = camX + SCREEN_WIDTH * 0.5;
+	double cam_cen_y = camY + SCREEN_HEIGHT * 0.5;
+    int px = hitbox_x + hitbox_w * 0.5;
+    int py = hitbox_y + hitbox_h * 0.5;
+    double tarX = (2 * px + mouseX) / 3;
+    double tarY = (2 * py + mouseY) / 3;
+
+    double deltax = mouseX + camX - px;
+    double deltay = mouseY + camY - py;
+    double rad = std::atan2(deltax, -deltay); 
+
+    double currClock = clock();
+    if (((double)currClock - (double)firing_clock) / CLOCKS_PER_SEC >= firingRate) {
+        
+        weapon.wielding = 1;
+        weapon.sprite.InitClock();
+        weapon.sprite.SetClipTime(0.05);
+        weapon.sprite.SetFrameId(1);
+        firing_clock = clock();
+
+        int bulletCount = 5;
+        double angle_range = PI / 4;
+        double angle_gap;
+        if (bulletCount == 1) angle_gap = 0;
+        else angle_gap = angle_range / (bulletCount - 1);
+        double starting_angle = PI - rad - angle_range / 2;
+        for (int i = 0; i < bulletCount; i++) {
+                
+            Fireball p;
+            p.InitSprite();
+            p.Init(px, py, starting_angle + angle_gap * i, 4);
+            for (int k = 0; k < 2; k++) p.Update();
+            pvec.push_back(p);
+        }
+        mana -= special_attack_mana;
+        Mix_PlayChannel(-1, sound_shoot, 0);
+    }
+
 }
 
 bool Character::CollideProjectile(shProjectile& p) {
@@ -275,9 +319,9 @@ void Character::AnimateIdle() {
 
 void Character::Render(SDL_Renderer* gRenderer, int camX, int camY) {
 
-    SDL_SetRenderDrawColor(gRenderer, 255, 32, 64, 255);
-    SDL_Rect hitbox = {hitbox_x - camX, hitbox_y - camY, hitbox_w, hitbox_h};
-    SDL_RenderDrawRect(gRenderer, &hitbox);
+    // SDL_SetRenderDrawColor(gRenderer, 255, 32, 64, 255);
+    // SDL_Rect hitbox = {hitbox_x - camX, hitbox_y - camY, hitbox_w, hitbox_h};
+    // SDL_RenderDrawRect(gRenderer, &hitbox);
     // std::cout << hitbox_x << "-" << hitbox_y << "-" << hitbox_h << "-" << spr_height << "\n";
 
     this->sprites[curr_sprite].Animate();
@@ -295,6 +339,7 @@ Character::Character() {
         sprites[i].texture = NULL;
     }
     health = 5;
+    mana = MAX_MANA;
     weapon.sprite.texture = NULL;
     hvel = 0;
     vvel = 0;
@@ -314,7 +359,6 @@ Character::Character() {
     curr_sprite = 0;
 
     firing_clock = clock();
-    firingRate = 0;
 
 
     got_hit = 1;
@@ -348,12 +392,8 @@ Character::~Character() {
     
     curr_sprite = 0;
 
-    firing_clock = NULL;
-    firingRate = 0;
-
 
     got_hit = 0;
-    gothit_clock = NULL;
 
     kb_coefficient = 0;
     gothit_duration = 0;

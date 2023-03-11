@@ -37,7 +37,10 @@ void Golem::InitSprite() {
 void Golem::Animate() {
     if (health > 0) {
         if (got_hit) {
-            curr_sprite = 2;
+            if (curr_sprite != 2) { 
+                curr_sprite = 2;
+                sprites[curr_sprite].SetFrameId(0);
+            }
             if (sprites[curr_sprite].Animate()) got_hit = false;
         }
         else {

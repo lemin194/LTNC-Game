@@ -6,6 +6,7 @@ OBJS = main.cpp \
 		header/Character.cpp\
 		header/Weapon.cpp \
 		header/Projectile.cpp\
+		header/Fireball.cpp\
 		header/shProjectile.cpp\
 		header/Golem.cpp\
 		header/Goblin.cpp\
