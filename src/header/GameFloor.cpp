@@ -85,7 +85,7 @@ void GameFloor::GameInit(string path) {
     SDL_Color textColor = { 145, 125, 125 };
 
 	heart = new LTexture();
-	heart->LoadFromFile("..\\assets\\sprites\\heart.png", renderer);
+	heart->LoadFromFile("assets/sprites/heart.png", renderer);
 }
 
 
