@@ -3,7 +3,7 @@ assets/maps/map1.txt
 
 
 148 138
-
+1
 320 320
 
 2

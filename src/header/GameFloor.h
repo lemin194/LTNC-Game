@@ -14,7 +14,6 @@
 
 class GameFloor{
 public :
-    static TTF_Font* gFont;
     static TTF_Font* font_ui;
     static SDL_Renderer* renderer;
     GameFloor();
@@ -39,7 +38,7 @@ private:
     std::vector<shProjectile> epvec;
     std::vector<Golem*> gols;
     std::vector<Goblin*> gobs;
-    StormHead* stormhead;
+    std::vector<StormHead*> stormheads;
     LTexture* heart;
     
     TileSet tileSet;

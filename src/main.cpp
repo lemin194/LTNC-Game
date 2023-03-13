@@ -33,7 +33,7 @@ SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
 LTexture* Weapon::texture;
-LTexture* Character::textures[3];
+LTexture* Character::texture;
 LTexture* TileSet::texture;
 LTexture* Projectile::texture;
 LTexture* Golem::texture;
@@ -47,11 +47,8 @@ LTexture* StormHead::texture_death;
 LTexture* shProjectile::texture;
 LTexture* Fireball::texture;
 
-LTexture* heart;
-
-TTF_Font* GameFloor::gFont;
-TTF_Font* GameFloor::font_ui;
 TTF_Font* font_ui;
+TTF_Font* GameFloor::font_ui;
 
 Mix_Chunk* sound_lose = NULL;
 Mix_Chunk* sound_win = NULL;
@@ -89,9 +86,8 @@ int loadMedia() {
 						"assets/sprites/char/char.png"
 						};
 
-	for (int i = 0; i < 2; i ++) Character::textures[i] = new LTexture();
-	Character::textures[0]->LoadFromFile("assets/sprites/char/char.png", renderer);
-	Character::textures[1]->LoadFromFile("assets/sprites/char/char.png", renderer);
+	Character::texture = new LTexture();
+	Character::texture->LoadFromFile("assets/sprites/char/char.png", renderer);
 
 	Weapon::texture = new LTexture();
 	Weapon::texture->LoadFromFile("assets/sprites/char/weapon-sheet.png", renderer);
@@ -132,8 +128,6 @@ int loadMedia() {
 	StormHead::texture_death = new LTexture();
 	StormHead::texture_death->LoadFromFile("assets/sprites/enemy/stormhead/sh-death.png", renderer);
 
-	heart = new LTexture();
-	heart->LoadFromFile("assets/sprites/heart.png", renderer);
 
 
 	int imgFlags = IMG_INIT_PNG;
@@ -148,11 +142,7 @@ int loadMedia() {
 		printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
 	}
 
-	GameFloor::gFont = TTF_OpenFont( "assets/font/ARCADECLASSIC.TTF", 64 );
-    if( GameFloor::gFont == NULL )
-    {
-        printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
-    }
+
 	font_ui = TTF_OpenFont( "assets/font/font_ui.TTF", 48 );
     if( font_ui == NULL )
     {
@@ -223,13 +213,13 @@ int mySdlInit() {
 
 void close() {
 	TileSet::texture->Free();
-	Character::textures[0]->Free();
-	Character::textures[1]->Free();
+	Character::texture->Free();
 	Weapon::texture->Free();
 	Projectile::texture->Free();
 	Golem::texture->Free();
 	Goblin::texture->Free();
 	Fireball::texture->Free();
+	shProjectile::texture->Free();
 	StormHead::texture_attack2->Free();
 	StormHead::texture_attack->Free();
 	StormHead::texture_damaged->Free();
@@ -239,8 +229,7 @@ void close() {
 
 
 	TileSet::texture = nullptr;
-	Character::textures[0] = nullptr;
-	Character::textures[1] = nullptr;
+	Character::texture = nullptr;
 	Weapon::texture = nullptr;
 	Projectile::texture = nullptr;
 	Golem::texture = nullptr;
@@ -261,7 +250,7 @@ void close() {
 	
 
 
-    TTF_CloseFont( GameFloor::gFont );
+    TTF_CloseFont( font_ui );
 
 
 	Mix_FreeChunk(sound_lose);
@@ -431,11 +420,11 @@ int main( int argc, char* args[] )
 		else if (curr_gamestate == GameState::Playing){
 			curr_floor->Update();
 
-			int &health = curr_floor->player->health;
+			// int &health = curr_floor->player->health;
 
-			const Uint8* key_state = SDL_GetKeyboardState(NULL);
+			// const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-			if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
+			// if (key_state[SDL_SCANCODE_KP_PLUS]) health++;
 
 			/// Draw
 			

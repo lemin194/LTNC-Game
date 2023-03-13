@@ -15,8 +15,8 @@ SDL_Rect Character::GetHitbox() {
 }
 
 void Character::InitSprite() {
-    sprites[0].texture = textures[0];
-    sprites[1].texture = textures[1];
+    sprites[0].texture = texture;
+    sprites[1].texture = texture;
 
 
     curr_sprite = 0;

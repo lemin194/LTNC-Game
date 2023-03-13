@@ -46,13 +46,16 @@ void GameFloor::GameInit(string path) {
 	player->InitHitbox(playerX - CHARACTER_WIDTH / 2, playerY - CHARACTER_HEIGHT / 2, CHARACTER_WIDTH, CHARACTER_HEIGHT);
 	player->InitSprite();
 
-    int stX, stY; f >> stX >> stY;
-	stormhead = new StormHead();
-	stormhead->InitHitbox(stX - STORM_WIDTH / 2, stY - STORM_HEIGHT / 2,
-							STORM_WIDTH, STORM_HEIGHT);
-	stormhead->InitSprite();
-	stormhead->InitClock();
-
+	int stormhead_count; f >> stormhead_count;
+	for (int i = 0; i < stormhead_count; i++) {
+		int stX, stY; f >> stX >> stY;
+		StormHead* s = new StormHead();
+		s->InitHitbox(stX - STORM_WIDTH / 2, stY - STORM_HEIGHT / 2,
+								STORM_WIDTH, STORM_HEIGHT);
+		s->InitSprite();
+		s->InitClock();
+		stormheads.push_back(s);
+	}
 
     int gobCount, golCount;
     f >> golCount;
@@ -137,6 +140,19 @@ void GameFloor::Update() {
 			}
 		}
 	}
+
+	if (true) {
+		auto it = stormheads.begin();
+		while (it != stormheads.end()) {
+			if ((*it)->completelyDied) {
+				(*it)->~StormHead();
+				it = stormheads.erase(it);
+			}
+			else {
+				it++;
+			}
+		}
+	}
 	
 
 	for (auto g : gols)
@@ -147,7 +163,8 @@ void GameFloor::Update() {
 
 	SDL_Point chPos = {px + pw / 2, py + ph / 2};
 	
-	stormhead->Update(epvec, gols, gobs, chPos);
+	for (auto s : stormheads)
+		s->Update(epvec, gols, gobs, chPos);
 
 
 	for (int t = 0; t < 2; t++) {
@@ -162,7 +179,8 @@ void GameFloor::Update() {
 			{ ok = 0; break; }
 			for (auto g : gobs) if (g->GetHealth() > 0 && g->CollideProjectile(projectile_vec[i]))
 			{ ok = 0; break; }
-			if (stormhead->GetHealth() > 0 && stormhead->CollideProjectile(projectile_vec[i])) { ok = 0; }
+			for (auto s : stormheads) if (s->GetHealth() > 0 && s->CollideProjectile(projectile_vec[i]))
+			{ ok = 0; break; }
 
 			if (!ok) continue;
 
@@ -204,7 +222,7 @@ void GameFloor::Update() {
 
 	for (auto g : gols) g->Animate();
 	for (auto g : gobs) g->Animate();
-	stormhead->Animate();
+	for (auto s : stormheads) s->Animate();
 
 
 	player->AnimateWeapon();
@@ -233,7 +251,8 @@ void GameFloor::Draw() {
 		p.Render(renderer, camera.x, camera.y);
 	}
 
-	if (!stormhead->completelyDied) stormhead->Render(renderer, camera.x, camera.y);
+	for (auto s : stormheads)
+		if (!s->completelyDied) s->Render(renderer, camera.x, camera.y);
 	
 	
 	player->Render(renderer, camera.x, camera.y);
@@ -257,12 +276,13 @@ void GameFloor::Draw() {
 	curr_pos.y += txt_health.GetHeight();
 	SDL_Point mana_pos = {heart_pos.x, curr_pos.y + txt_mana.GetHeight() / 2};
     txt_mana.Render(curr_pos.x, curr_pos.y, renderer, NULL, 0, NULL, SDL_FLIP_NONE, 1);
-	int manaBar_height = 24, manaBar_width = 144;
-	SDL_Rect manaBar_bg_rect = {mana_pos.x, mana_pos.y - manaBar_height / 2, manaBar_width, manaBar_height};
-	SDL_Rect manaBar_rect = {mana_pos.x, mana_pos.y - manaBar_height / 2, manaBar_width * player->mana / player->MAX_MANA, manaBar_height};
-	SDL_SetRenderDrawColor(renderer, 0, 32, 128, 255);
+	int manaBar_height = 18, manaBar_width = 144;
+	int _y = 4;
+	SDL_Rect manaBar_bg_rect = {mana_pos.x, mana_pos.y - manaBar_height / 2 + _y, manaBar_width, manaBar_height};
+	SDL_Rect manaBar_rect = {mana_pos.x, mana_pos.y - manaBar_height / 2 + _y, manaBar_width * player->mana / player->MAX_MANA, manaBar_height};
+	SDL_SetRenderDrawColor(renderer, 32, 64, 144, 255);
 	SDL_RenderFillRect(renderer, &manaBar_bg_rect);
-	SDL_SetRenderDrawColor(renderer, 32, 128, 255, 255);
+	SDL_SetRenderDrawColor(renderer, 32, 180, 255, 255);
 	SDL_RenderFillRect(renderer, &manaBar_rect);
 
     txt_health.Free();
@@ -280,9 +300,7 @@ int GameFloor::GetHealth() {
 }
 
 bool GameFloor::IsWin() {
-    int sum = !stormhead->completelyDied;
-    sum += gobs.size();
-    sum += gols.size();
+    int sum = stormheads.size() + gobs.size() + gols.size();
     return sum == 0;
 }
 

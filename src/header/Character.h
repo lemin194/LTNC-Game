@@ -9,7 +9,7 @@
 
 class Character {
 public:
-    static LTexture* textures[3];
+    static LTexture* texture;
     static Mix_Chunk* sound_shoot;
     static Mix_Chunk* sound_gothit;
 
